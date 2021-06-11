@@ -1,0 +1,14 @@
+{{ template "header" . }}
+
+<p>The status of <b>{{.AnalysisName}}</b> is now {{if eq .AnalysisStatus "Completed"}} <b style="color: powderblue;">{{.AnalysisStatus}}</b> {{ else if eq .AnalysisStatus "Failed" }} <b style="color: red;">{{.AnalysisStatus}}</b> {{ else }} <b>{{.AnalysisStatus}}</b> {{- end}}.</p>
+<br/>
+<p>
+Comments:
+{{.AnalysisDescription}}
+</p>
+<br/>
+
+<p>Analysis launch date: {{.AnalysisStartDate}}</p>
+{{ if or (eq .AnalysisStatus "Completed") (eq .AnalysisStatus "Failed")}} <p>Results folder: <a href="{{.AnalysisResultFolder}}">{{.AnalysisResultFolder}}</a></p>{{- end}}
+
+{{ template "footer" . }}

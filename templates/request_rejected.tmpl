@@ -1,0 +1,12 @@
+{{ template "header" . }}
+
+Your request has been denied.
+
+Reason for denial: {{.UpdateMessage}}
+
+Request Details:
+
+{{.RequestDetails}}
+
+{{ template "footer" . }}
+

@@ -1,0 +1,13 @@
+{{ template "header" . }}
+
+{{.Username}} has requested the publication of a new app ({{.AppName}}) containing private tools
+in the $environment$ environment. Please use request ID, {{.AppPublicationRequestId}},
+to track the publication request.
+
+Private Tools:
+
+$privatetoollist$
+
+{{ template "footer" . }}
+
+

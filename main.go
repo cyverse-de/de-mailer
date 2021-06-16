@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 
@@ -65,10 +64,9 @@ func parseRequestBody(r *http.Request) (EmailRequest, map[string](interface{}), 
 	// unmarshall payload to map with interface{}
 	payloadMap := make(map[string](interface{}))
 
-	logcabin.Info.Println("Post request received")
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		logcabin.Error.Fatal(err)
+		logcabin.Error.Println(err)
 		return emailReq, payloadMap, err
 	}
 	logcabin.Info.Println(string(body))
@@ -76,13 +74,12 @@ func parseRequestBody(r *http.Request) (EmailRequest, map[string](interface{}), 
 	err = json.Unmarshal(body, &emailReq)
 
 	if err != nil {
-		logcabin.Error.Fatal(err)
+		logcabin.Error.Println(err)
 		return emailReq, payloadMap, err
 	} else {
-
 		err := json.Unmarshal(emailReq.Payload, &payloadMap)
 		if err != nil {
-			logcabin.Error.Fatal(err)
+			logcabin.Error.Println(err)
 			return emailReq, payloadMap, err
 		} else {
 			err := json.Unmarshal(emailReq.Payload, &payloadMap)
@@ -102,17 +99,17 @@ func EmailRequestHandler(w http.ResponseWriter, r *http.Request, emailSettings E
 		w.WriteHeader(200)
 		w.Write([]byte("A service that handles email-requests and send out emails to users."))
 	case "POST":
-		logcabin.Info.Println("Post request received")
+		logcabin.Info.Println("Post request received.")
 		emailReq, payloadMap, err := parseRequestBody(r)
 		if err != nil {
-			logcabin.Error.Fatal(err)
+			logcabin.Error.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(err.Error()))
 			return
 		} else {
 			formattedMsg, err := FormatEmail(emailReq, payloadMap)
 			if err != nil {
-				logcabin.Error.Fatal(err)
+				logcabin.Error.Println(err)
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte(err.Error()))
 				return
@@ -129,9 +126,10 @@ func EmailRequestHandler(w http.ResponseWriter, r *http.Request, emailSettings E
 		}
 
 	default:
-		logcabin.Error.Fatal("Sorry, only GET and POST methods are supported.")
+		logcabin.Error.Println("Unsupported request method.")
 		w.WriteHeader(405)
-		w.Write([]byte("Unsupported request method"))
+		w.Write([]byte("Unsupported request method."))
+		return
 	}
 }
 
@@ -155,5 +153,5 @@ func main() {
 	http.HandleFunc("/", func(writer http.ResponseWriter, reader *http.Request) {
 		EmailRequestHandler(writer, reader, emailSettings)
 	})
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	logcabin.Error.Fatal(http.ListenAndServe(":8080", nil))
 }

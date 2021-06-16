@@ -28,7 +28,7 @@ func FormatEmail(emailReq EmailRequest, payload map[string](interface{})) (bytes
 	tmpl, err := template.ParseFiles("./templates/"+emailReq.Email_Template+".tmpl", "./templates/header.tmpl", "./templates/footer.tmpl")
 	var template_output bytes.Buffer
 	if err != nil {
-		logcabin.Error.Fatal(err)
+		logcabin.Error.Println(err)
 		return template_output, err
 	}
 
@@ -49,7 +49,7 @@ func FormatEmail(emailReq EmailRequest, payload map[string](interface{})) (bytes
 
 	tmpl_err := tmpl.Execute(&template_output, data)
 	if tmpl_err != nil {
-		logcabin.Error.Fatal(tmpl_err)
+		logcabin.Error.Println(tmpl_err)
 	}
 	return template_output, tmpl_err
 }

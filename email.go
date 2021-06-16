@@ -1,7 +1,9 @@
 package main
 
 import (
-	"net/smtp"
+	"gopkg.in/gomail.v2"
+
+	"github.com/cyverse-de/logcabin"
 )
 
 //email settings
@@ -30,13 +32,21 @@ func NewEmail(smtpHost string, from string, to []string, subject, body string) *
 }
 
 func (r *Email) SendEmail() (bool, error) {
-	mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
-	subject := "Subject: " + r.subject + "!\n"
-	msg := []byte(subject + mime + "\n" + r.body)
-	addr := r.host
 
-	if err := smtp.SendMail(addr, nil, r.from, r.to, msg); err != nil {
+	m := gomail.NewMessage()
+	m.SetHeader("From", r.from)
+	m.SetHeader("mailed-by", "cyverse.org")
+	m.SetHeader("To", r.to[0])
+	m.SetHeader("Subject", r.subject)
+	m.SetBody("text/html", r.body)
+
+	d := gomail.Dialer{Host: r.host, Port: 25}
+
+	// Send the email to Bob, Cora and Dan.
+	if err := d.DialAndSend(m); err != nil {
+		logcabin.Error.Println(err)
 		return false, err
 	}
+
 	return true, nil
 }

@@ -1,14 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
-	"html/template"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
-
-	"encoding/json"
-	"io/ioutil"
 
 	"github.com/DavidGamba/go-getoptions"
 	"github.com/cyverse-de/configurate"
@@ -19,89 +17,14 @@ type commandLineOptionValues struct {
 	Config string
 }
 
-// message in the email request
-type message struct {
-	Text string
-}
-
-// email request received
-type emailRequest struct {
-	User           string
-	Email_Template string
-	Subject        string
-	Message        message
-	Payload        json.RawMessage
-}
-
-func buildEmailMessage(t emailRequest, payload map[string](interface{})) {
-	tmpl, err := template.ParseFiles("./templates/"+t.Email_Template+".tmpl", "./templates/header.tmpl", "./templates/footer.tmpl")
-
-	if err != nil {
-		logcabin.Error.Fatal(err)
-		return
-	}
-
-	data := struct {
-		User                 string
-		AnalysisName         string
-		AnalysisStatus       string
-		AnalysisDescription  string
-		AnalysisStartDate    string
-		AnalysisResultFolder string
-	}{User: "sriram",
-		AnalysisName:         "Test Analysis",
-		AnalysisStatus:       "Running",
-		AnalysisDescription:  "This is testing template",
-		AnalysisStartDate:    "05/12/2021 00 00 00",
-		AnalysisResultFolder: "https://de.cyverse.org/data/ds/iplant/home/sriram/analyses",
-	}
-
-	tmpl_err := tmpl.Execute(os.Stdout, data)
-	if tmpl_err != nil {
-		log.Fatalf("template execution: %s", tmpl_err)
-	}
-}
-
-// handles email notification requests
-func emailRequestHandler(w http.ResponseWriter, r *http.Request) {
-	var t emailRequest
-
-	if r.URL.Path != "/" {
-		http.Error(w, "404 not found.", http.StatusNotFound)
-		return
-	}
-	switch r.Method {
-	case "GET":
-		fmt.Fprintf(w, "A service that handles email-requests and send out emails to users.")
-	case "POST":
-		logcabin.Info.Println("Post request received")
-		body, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			logcabin.Error.Fatal(err)
-			return
-		}
-		logcabin.Info.Println(string(body))
-
-		err = json.Unmarshal(body, &t)
-		if err != nil {
-			logcabin.Error.Fatal(err)
-			return
-		} else {
-			// unmarshell payload to map with interface{}
-			jsonMap := make(map[string](interface{}))
-			err := json.Unmarshal(t.Payload, &jsonMap)
-			if err != nil {
-				logcabin.Error.Fatal(err)
-				return
-			} else {
-				logcabin.Info.Println(jsonMap["analysisresultsfolder"])
-				buildEmailMessage(t, jsonMap)
-			}
-		}
-
-	default:
-		fmt.Fprintf(w, "Sorry, only GET and POST methods are supported.")
-	}
+type DESettings struct {
+	base        string
+	data        string
+	analyses    string
+	teams       string
+	tools       string
+	communities string
+	apps        string
 }
 
 //copied from https://github.com/cyverse-de/email-requests/blob/master/main.go
@@ -114,7 +37,7 @@ func parseCommandLine() *commandLineOptionValues {
 	opt := getoptions.New()
 
 	// Default option values.
-	defaultConfigPath := "/etc/iplant/de/jobservices.yml"
+	defaultConfigPath := "/etc/iplant/de/emailservice.yml"
 
 	// Define the command-line options.
 	opt.Bool("help", false, opt.Alias("h", "?"))
@@ -137,6 +60,81 @@ func parseCommandLine() *commandLineOptionValues {
 	return optionValues
 }
 
+func parseRequestBody(r *http.Request) (EmailRequest, map[string](interface{}), error) {
+	var emailReq EmailRequest
+	// unmarshall payload to map with interface{}
+	payloadMap := make(map[string](interface{}))
+
+	logcabin.Info.Println("Post request received")
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		logcabin.Error.Fatal(err)
+		return emailReq, payloadMap, err
+	}
+	logcabin.Info.Println(string(body))
+
+	err = json.Unmarshal(body, &emailReq)
+
+	if err != nil {
+		logcabin.Error.Fatal(err)
+		return emailReq, payloadMap, err
+	} else {
+
+		err := json.Unmarshal(emailReq.Payload, &payloadMap)
+		if err != nil {
+			logcabin.Error.Fatal(err)
+			return emailReq, payloadMap, err
+		} else {
+			err := json.Unmarshal(emailReq.Payload, &payloadMap)
+			return emailReq, payloadMap, err
+		}
+	}
+}
+
+// handles email notification requests
+func EmailRequestHandler(w http.ResponseWriter, r *http.Request, emailSettings EmailSettings) {
+	if r.URL.Path != "/" {
+		http.Error(w, "404 not found.", http.StatusNotFound)
+		return
+	}
+	switch r.Method {
+	case "GET":
+		w.WriteHeader(200)
+		w.Write([]byte("A service that handles email-requests and send out emails to users."))
+	case "POST":
+		logcabin.Info.Println("Post request received")
+		emailReq, payloadMap, err := parseRequestBody(r)
+		if err != nil {
+			logcabin.Error.Fatal(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
+		} else {
+			formattedMsg, err := FormatEmail(emailReq, payloadMap)
+			if err != nil {
+				logcabin.Error.Fatal(err)
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte(err.Error()))
+				return
+			} else {
+				toAddr := payloadMap["email_address"].(string)
+				r := NewEmail(emailSettings.smtpHost, emailSettings.fromAddress, []string{toAddr}, emailReq.Subject, formattedMsg.String())
+				logcabin.Info.Println("Emailing " + toAddr + " host:" + emailSettings.smtpHost)
+				ok, _ := r.SendEmail()
+				fmt.Println(ok)
+				w.WriteHeader(200)
+				w.Write([]byte("Request processed successfully."))
+				return
+			}
+		}
+
+	default:
+		logcabin.Error.Fatal("Sorry, only GET and POST methods are supported.")
+		w.WriteHeader(405)
+		w.Write([]byte("Unsupported request method"))
+	}
+}
+
 func main() {
 	// Initialize logging.
 	logcabin.Init("de-mailer", "de-mailer")
@@ -152,6 +150,10 @@ func main() {
 	//test config
 	logcabin.Info.Println(config.GetString("de.base"))
 
-	http.HandleFunc("/", emailRequestHandler)
+	emailSettings := EmailSettings{smtpHost: config.GetString("email.smtpHost"), fromAddress: config.GetString("email.fromAddress")}
+
+	http.HandleFunc("/", func(writer http.ResponseWriter, reader *http.Request) {
+		EmailRequestHandler(writer, reader, emailSettings)
+	})
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

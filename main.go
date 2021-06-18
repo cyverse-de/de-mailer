@@ -24,6 +24,9 @@ type DESettings struct {
 	tools       string
 	communities string
 	apps        string
+	admin       string
+	doi         string
+	vice        string
 }
 
 //copied from https://github.com/cyverse-de/email-requests/blob/master/main.go
@@ -59,6 +62,7 @@ func parseCommandLine() *commandLineOptionValues {
 	return optionValues
 }
 
+// parseRequestBody will parse the post body. The body is the notification message
 func parseRequestBody(r *http.Request) (EmailRequest, map[string](interface{}), error) {
 	var emailReq EmailRequest
 	// unmarshall payload to map with interface{}
@@ -89,7 +93,7 @@ func parseRequestBody(r *http.Request) (EmailRequest, map[string](interface{}), 
 }
 
 // handles email notification requests
-func EmailRequestHandler(w http.ResponseWriter, r *http.Request, emailSettings EmailSettings) {
+func EmailRequestHandler(w http.ResponseWriter, r *http.Request, emailSettings EmailSettings, deSettings DESettings) {
 	if r.URL.Path != "/" {
 		http.Error(w, "404 not found.", http.StatusNotFound)
 		return
@@ -107,7 +111,7 @@ func EmailRequestHandler(w http.ResponseWriter, r *http.Request, emailSettings E
 			w.Write([]byte(err.Error()))
 			return
 		} else {
-			formattedMsg, err := FormatEmail(emailReq, payloadMap)
+			formattedMsg, err := FormatMessage(emailReq, payloadMap, deSettings)
 			if err != nil {
 				logcabin.Error.Println(err)
 				w.WriteHeader(http.StatusInternalServerError)
@@ -148,10 +152,26 @@ func main() {
 	//test config
 	logcabin.Info.Println(config.GetString("de.base"))
 
-	emailSettings := EmailSettings{smtpHost: config.GetString("email.smtpHost"), fromAddress: config.GetString("email.fromAddress")}
+	emailSettings := EmailSettings{
+		smtpHost:    config.GetString("email.smtpHost"),
+		fromAddress: config.GetString("email.fromAddress"),
+	}
+
+	deSettings := DESettings{
+		base:        config.GetString("de.base"),
+		data:        config.GetString("de.data"),
+		analyses:    config.GetString("de.analyses"),
+		teams:       config.GetString("teams"),
+		tools:       config.GetString("tools"),
+		communities: config.GetString("communities"),
+		apps:        config.GetString("apps"),
+		admin:       config.GetString("admin"),
+		doi:         config.GetString("doi"),
+		vice:        config.GetString("vice"),
+	}
 
 	http.HandleFunc("/", func(writer http.ResponseWriter, reader *http.Request) {
-		EmailRequestHandler(writer, reader, emailSettings)
+		EmailRequestHandler(writer, reader, emailSettings, deSettings)
 	})
 	logcabin.Error.Fatal(http.ListenAndServe(":8080", nil))
 }

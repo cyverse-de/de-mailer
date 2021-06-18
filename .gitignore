@@ -11,8 +11,6 @@
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
-# REST http client test
-*.http
-
 # Dependency directories (remove the comment below to include it)
 # vendor/
+templates/rest.http

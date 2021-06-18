@@ -1,6 +1,4 @@
-Dear Curator,
-We are notifying you that {{.Username}} has requested a new {{.RequestType}} Permanent ID for the
-{{.Path}}
-dataset in the {{.Environment}} environment. 
-
+<p>Dear Curator,</p>
+<p>We are notifying you that {{.user}} has requested a new <a href="{{.DEPidRequestLink}}">{{.request_type}}</a> Permanent ID for the
+{{.path}} dataset in the {{.environment}} environment.</p>
 {{ template "footer" . }}

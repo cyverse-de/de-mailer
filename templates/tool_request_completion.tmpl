@@ -1,10 +1,10 @@
 {{ template "header" . }}
 
-Your tool, {{.ToolName}}, is now available in the Discovery Environment, as requested. 
+<p>Your tool, <a href="{{.DEToolsLink}">{{.toolname}}</a>, is now available in the Discovery Environment, as requested.</p>
 
-Comments from the tool integrator, if any, are below:
+<p>Comments from the tool integrator, if any, are below:</p>
 
-{{.Comments}}
+{{.comments}}
 
 
 {{ template "footer" . }}

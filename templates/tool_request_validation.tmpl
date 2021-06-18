@@ -1,9 +1,9 @@
 {{ template "header" . }}
 
-Team CyVerse is currently validating your tool, {{.ToolName}}. You will receive
-email updates and notifications in the Discovery Environment as the evaluation
-and installation process proceeds.
+<p>Team CyVerse is currently validating your tool, {{.toolname}}. You will receive
+email updates and notifications in the <a href={{.DELink}}>Discovery Environment</a> as the evaluation
+and installation process proceeds.</p>
 
-{{.Comments}}
+{{.comments}}
 
 {{ template "footer" . }}

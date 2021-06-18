@@ -1,12 +1,9 @@
 {{ template "header" . }}
 
-{{.Username}} has requested the publication of a new app ({{.AppName}}) containing private tools
-in the $environment$ environment. Please use request ID, {{.AppPublicationRequestId}},
-to track the publication request.
+<p>{{.user}} has requested the publication of a new app ({{.app_name}}) containing private tools
+in the $environment$ environment. Please use request ID, <a href="{{.DEPublicationRequestsLink}}">{{.AppPublicationRequestId}}</a>,
+to track the publication request.</p>
 
-Private Tools:
-
-$privatetoollist$
 
 {{ template "footer" . }}
 

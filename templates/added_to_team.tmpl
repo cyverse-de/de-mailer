@@ -1,7 +1,6 @@
 {{ template "header" . }}
 
-You have been added to this team: <a href="{{.DETeamsLink}}">{{.TeamName}}</a>.
-You now have access to this team's shared apps.
-You can also see other members of this team and can remove yourself from this team. 
+<p>You have been added to <a href="{{.DETeamsLink}}">{{.team_name}}</a> team. You may remove yourself from this team anytime.</p>
+<p>You now have access to this team's shared apps.</p>
 
 {{ template "footer" . }}

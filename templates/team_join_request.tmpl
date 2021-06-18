@@ -1,9 +1,12 @@
 Dear Team Administrator,
-
-{{.RequesterName}} ({{.RequesterEmail}}) has requested to join the team {{.TeamName}}.
-
+<p>
+<b style="color: powderblue;">{{.requester_name}}</b> ({{.requester_email}}) has requested to join the team <b style="color: powderblue;">{{.team_name}}</a>.
+</p>
+<p>
 Here is the requester's message:
+</p>
+{{.requester_message}}
 
-{{.RequesterMessage}}
-
-Please log in to the DE to check your notifications; you may approve or deny this request by clicking on the corresponding notification.
+<p>
+Please log in to the <a href="{{.DELink}}">Discovery Environment</a> to check your notifications; you may approve or deny this request by clicking on the corresponding notification.
+</p>

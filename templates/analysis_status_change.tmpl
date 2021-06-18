@@ -1,14 +1,11 @@
 {{ template "header" . }}
 
-<p>The status of <b>{{.AnalysisName}}</b> is now {{if eq .AnalysisStatus "Completed"}} <b style="color: powderblue;">{{.AnalysisStatus}}</b> {{ else if eq .AnalysisStatus "Failed" }} <b style="color: red;">{{.AnalysisStatus}}</b> {{ else }} <b>{{.AnalysisStatus}}</b> {{- end}}.</p>
-<br/>
+<p>The status of <b>{{.analysisname}}</b> is now {{if eq .analysisstatus "Completed"}} <b style="color: powderblue;">{{.analysisstatus}}</b> {{ else if eq .analysisstatus "Failed" }} <b style="color: red;">{{.analysisstatus}}</b> {{ else }} <b>{{.analysisstatus}}</b> {{- end}}.</p>
 <p>
-Comments:
-{{.AnalysisDescription}}
+<b>Comments</b>:
+{{.analysisdescription}}
 </p>
-<br/>
-
-<p>Analysis launch date: {{.AnalysisStartDate}}</p>
-{{ if or (eq .AnalysisStatus "Completed") (eq .AnalysisStatus "Failed")}} <p>Results folder: <a href="{{.AnalysisResultFolder}}">{{.AnalysisResultFolder}}</a></p>{{- end}}
+<p><b>Analysis launch date:</b> {{.startdate}}</p>
+{{ if or (eq .analysisstatus "Completed") (eq .analysisstatus "Failed")}} <p>Results folder: <a href="{{.DEOutputFolderLink}}">{{.analysisresultsfolder}}</a></p>{{- end}}
 
 {{ template "footer" . }}

@@ -1,7 +1,7 @@
 {{ template "header" . }}
 
-<a href="{{.DEAppsLink}}">{{.AppName}} </a> has been add to the following communities, which you currently administrate:
+<p><a href="{{.DEAppsLink}}">{{.app_name}} </a> has been add to the following <a href="{{.DECommunitiesLink}}">Communities</a>, which you currently administrate:</p>
 
-<a href="{{.DECommunitiesLink}}">{{.CommunityList}}</a>
+{{.CommunityList}}
 
 {{ template "footer" . }}

@@ -1,10 +1,10 @@
 {{ template "header" . }}
 
-The app {{.AppName}}, by $app_integrator$, has been made public.
-The app publisher is requesting this app be tagged with the following communities:
+<p>The app <a href="{{.DEAppsLink}}">{{.app_name}}</a>, by {{.app_integrator}}, has been made public.</p>
+<p>The app publisher is requesting this app be tagged with the following communities:</p>
 
-{{CommunityList}}
+{{.CommunityList}}
 
-As a community administrator, please either accept or reject this request.
+<p>As a community administrator, please either accept or reject this request.</p>
 
 {{ template "footer" . }}

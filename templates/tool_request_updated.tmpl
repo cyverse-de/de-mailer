@@ -1,3 +1,8 @@
-The status of your request to install {{.toolname}} has changed to {{.status}}
+{{ template "header" . }}
+
+<p>The status of your request to install {{.toolname}} has changed to {{.status}}</p>
 
 {{.comments}}
+
+
+{{ template "footer" . }}

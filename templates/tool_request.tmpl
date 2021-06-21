@@ -1,6 +1,10 @@
 <p>{{.user}} has requested the installation of a new tool in the {{.environment}}
 environment.</p>
 
-Request details:
+<p><b>Request details:</b></p>
 
-{{.ToolRequestDetails}}
+<pre>
+{{.toolrequestdetails}}
+</pre>
+
+{{ template "footer" . }}

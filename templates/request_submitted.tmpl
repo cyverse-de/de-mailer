@@ -1,5 +1,10 @@
-{{.User}} has submitted a {{.RequestType}} request.
 
-Request Details:
+{{.user}} has submitted a {{.request_type}} request.
 
-{{.RequestDetails}}
+<p><b>Request Details:</b></p>
+
+<pre>
+{{.request_details}}
+</pre>
+
+{{ template "footer" . }}

@@ -1,5 +1,11 @@
-Your request has been approved. Thank you for your patience.
+{{ template "header" . }}
 
-Request Details:
+<p>{{.update_message}}</p>
 
-{{.RequestDetails}}
+<p><b>Request Details:</b></p>
+
+<pre>
+{{.request_details}}
+</pre>
+
+{{ template "footer" . }}

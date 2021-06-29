@@ -17,21 +17,17 @@ type message struct {
 
 // email request received
 type EmailRequest struct {
-	User           string
-	Email_Template string
-	Type           string
-	Subject        string
-	Message        message
-	Payload        json.RawMessage
+	To       string
+	Template string
+	Subject  string
+	Values   json.RawMessage
 }
 
 //format email message using templates
 func FormatMessage(emailReq EmailRequest, payload map[string](interface{}), deSettings DESettings) (bytes.Buffer, error) {
-	logcabin.Info.Println("Received formatting request with template " + emailReq.Email_Template + " for user " + emailReq.User)
-	messageType := emailReq.Type
+	logcabin.Info.Println("Received formatting request with template " + emailReq.Template)
 	var template_output bytes.Buffer
 
-	payload["user"] = emailReq.User
 	payload["DELink"] = deSettings.base
 	payload["DETeamsLink"] = deSettings.base + deSettings.teams
 	payload["DEAdminDoiRequestLink"] = deSettings.base + deSettings.admin + deSettings.doi
@@ -41,13 +37,13 @@ func FormatMessage(emailReq EmailRequest, payload map[string](interface{}), deSe
 	payload["DEPublicationRequestsLink"] = deSettings.base + deSettings.admin + deSettings.apps
 	payload["DEPidRequestLink"] = deSettings.base + deSettings.admin + deSettings.doi
 
-	tmpl, err := template.ParseFiles("./templates/"+emailReq.Email_Template+".tmpl", "./templates/header.tmpl", "./templates/footer.tmpl")
+	tmpl, err := template.ParseFiles("./templates/"+emailReq.Template+".tmpl", "./templates/header.tmpl", "./templates/footer.tmpl")
 	if err != nil {
 		logcabin.Error.Println(err)
 		return template_output, err
 	}
 
-	if messageType == "analysis" {
+	if emailReq.Template == "analysis_status_change" {
 		mill_sec, parse_err := strconv.ParseInt(payload["startdate"].(string), 10, 64)
 		if parse_err != nil {
 			logcabin.Error.Println(parse_err)

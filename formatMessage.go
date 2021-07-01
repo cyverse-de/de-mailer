@@ -17,6 +17,7 @@ type message struct {
 
 // email request received
 type EmailRequest struct {
+	FromAddr string
 	To       string
 	Template string
 	Subject  string
@@ -56,6 +57,10 @@ func FormatMessage(emailReq EmailRequest, payload map[string](interface{}), deSe
 			logcabin.Error.Println(tmpl_err)
 		}
 		return template_output, tmpl_err
+	}
+
+	if emailReq.Template == "added_to_team" {
+		payload["DETeamsLink"] = deSettings.base + deSettings.teams + "/" + payload["team_name"].(string)
 	}
 
 	tmpl_err := tmpl.Execute(&template_output, payload)

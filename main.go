@@ -86,7 +86,6 @@ func parseRequestBody(r *http.Request) (EmailRequest, map[string](interface{}), 
 			logcabin.Error.Println(err)
 		}
 		return emailReq, payloadMap, err
-
 	}
 }
 
@@ -109,6 +108,9 @@ func EmailRequestHandler(w http.ResponseWriter, r *http.Request, emailSettings E
 			w.Write([]byte(err.Error()))
 			return
 		} else {
+			if emailReq.FromAddr == "" {
+				emailReq.FromAddr = emailSettings.fromAddress
+			}
 			formattedMsg, err := FormatMessage(emailReq, payloadMap, deSettings)
 			if err != nil {
 				logcabin.Error.Println(err)
@@ -159,13 +161,13 @@ func main() {
 		base:        config.GetString("de.base"),
 		data:        config.GetString("de.data"),
 		analyses:    config.GetString("de.analyses"),
-		teams:       config.GetString("teams"),
-		tools:       config.GetString("tools"),
-		communities: config.GetString("communities"),
-		apps:        config.GetString("apps"),
-		admin:       config.GetString("admin"),
-		doi:         config.GetString("doi"),
-		vice:        config.GetString("vice"),
+		teams:       config.GetString("de.teams"),
+		tools:       config.GetString("de.tools"),
+		communities: config.GetString("de.communities"),
+		apps:        config.GetString("de.apps"),
+		admin:       config.GetString("de.admin"),
+		doi:         config.GetString("de.doi"),
+		vice:        config.GetString("de.vice"),
 	}
 
 	http.HandleFunc("/", func(writer http.ResponseWriter, reader *http.Request) {

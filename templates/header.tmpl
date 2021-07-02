@@ -8,42 +8,107 @@ body {
   }
   * { box-sizing: border-box;}
   
-.wrapper{
-  background-color:  #fafafa;
-  padding: 24px;
-  margin-top:5%;
-  width: 90%;
-  max-width: 1170px;
-  border-radius:2px;
-  box-shadow: 
-      0 1px 3px rgba(0,0,0, 0.12),
-      0 1px 2px rgba(0,0,0, 0.24);
-}
 .title {
-    font-size: 20px;
+    font-size: 26px;
     color:#0971ab;
 }
 .content {
-    margin:2%;
+    padding: 24px;
+    width: 90%;
+    margin:8px;
     align-content:center;
     justify-content:center;
 }
 .icons {
-    margin-right:2%;
+    margin:8px;
     width:150px;
 }
 hr.divider {
     border-top: .25px solid #097ab;
     opacity:.2;
 }
+
+ .cyverse-blue-bg {
+      background-color: #0971ab;
+      color: #ffff;
+    }
+
+    .cyverse-silver-bg {
+      background-color: #e2e2e2;
+      color: #48515f;
+    }
+
+    .cyverse-blue {
+      color: #0971ab;
+    }
+
+    .cyverse-red {
+        color: #AF0404;
+    }
+
+    .cyverse-green {
+        color: #7CB342;
+    }
+
+    .cyverse-silver {
+        color: #e2e2e2;
+    }
+
+    .cyverse-grey {
+        color: #48515f;
+    }
+
+    .rounded {
+         border-radius: 3px;
+    }
+
+    .container {
+     display: flex;
+    }
+
+    .top-div {
+  margin: 8px;
+  padding: 8px;
+  flex-grow: 1;
+  width: 100% 
+}
+.top-center-div {
+  flex-grow: 1;
+}
+
+    .bottomDiv {
+        margin: 8px;
+        padding: 8px;
+        flex-grow: 1;
+    }
+
+    .bottomButton {
+        padding: 0;
+        border: none;
+        background: none;
+        outline: none;
+        margin: 8px;
+        text-decoration-line: underline;
+        cursor: pointer;
+    }
+
+    .center {
+        margin: auto;
+        text-align: center;
+    }
+
 </style>
 
 </head>
 <body>
-<div class="wrapper">
-<div class="content">
-<a href="https://de.cyverse.org/"><img class="logo" src="https://cyverse.org/sites/default/files/inline-images/de_icon.png" /></a>
-<span class="title">Discovery Environment</span>
-<hr class="divider"/>
+<div class="container">
+  <div class="top-div"><a href="www.cyverse.org"><img class="icons" src="https://cyverse.org/sites/default/files/cyverse_logo.png" /></a></div>
+  <div class="top-div top-center-div"></div>
+  <div class="top-div">
+    <a href="https://de.cyverse.org/"><img class="logo" src="https://cyverse.org/sites/default/files/inline-images/de_icon.png" /></a>
+    <span class="title">Discovery Environment</span>
+  </div>
+</div>
+  <div class="content">
 <p>Hi {{.user}}</p>
 {{end}}

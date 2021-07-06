@@ -3,112 +3,276 @@
 <head>
 <style>
 body {
-  width:100%;
+  width: 100%;
   font-family: Roboto;
-  }
-  * { box-sizing: border-box;}
-  
+}
+* {
+  box-sizing: border-box;
+}
+.col-title{
+  flex: 0 0 auto;
+  padding: 1rem !important;
+  align-items: center;
+  text-align: center;
+}
+.col-logo{
+  flex: 0 0 auto;
+  padding: 1rem !important;
+  align-items: center;
+  text-align: center;
+}
+.logo {
+  flex-grow: 1;
+  width:50px;
+}
+.spacer {
+  flex-grow: 1;
+}
 .title {
-    font-size: 26px;
-    color:#0971ab;
+  font-size: 24px;
+  color: #0971ab;
+  line-height: 150%;
+  margin-top:-2px;
 }
 .content {
-    padding: 24px;
-    width: 90%;
-    margin:8px;
-    align-content:center;
-    justify-content:center;
+  padding: 1rem;
+  margin-bottom: 1rem;
 }
 .icons {
-    margin:8px;
-    width:150px;
+ flex-grow: 1;
+ width: 150px;
 }
+
+.icon {
+  margin: 1rem;
+  width: 25px;
+}
+a {
+  text-decoration: none;
+  cursor: pointer !important;
+}
+a:visited {
+  text-decoration: none;
+  color: #48515f;
+  cursor: pointer !important;
+}
+
 hr.divider {
-    border-top: .25px solid #097ab;
-    opacity:.2;
+  border-bottom: 0.25px solid #0971ab;
+  opacity: 0.2;
+  margin: 8px;
+}
+.col {
+  width: 30%;
+  flex: 0 0 auto;
+  padding: 1rem !important;
+  align-items: center;
+  text-align: center;
 }
 
- .cyverse-blue-bg {
-      background-color: #0971ab;
-      color: #ffff;
-    }
+.row {
+  --bs-gutter-x: 1.5rem;
+  --bs-gutter-y: 0;
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: calc(var(--bs-gutter-y) * -1);
+  margin-right: calc(var(--bs-gutter-x) * -0.5);
+  margin-left: calc(var(--bs-gutter-x) * -0.5);
+  align-items: stretch !important;
+}
+.cyverse-blue-bg {
+  background-color: #0971ab;
+  color: #ffff;
+}
 
-    .cyverse-silver-bg {
-      background-color: #e2e2e2;
-      color: #48515f;
-    }
+.cyverse-silver-bg {
+  background-color: #48515f;
+  color: #ffffff;
+}
 
-    .cyverse-blue {
-      color: #0971ab;
-    }
+.cyverse-dk-navy-bg {
+  background-color: #004471;
+  color: #ffffff;
+}
 
-    .cyverse-red {
-        color: #AF0404;
-    }
+.cyverse-blue {
+  color: #0971ab;
+}
 
-    .cyverse-green {
-        color: #7CB342;
-    }
+.cyverse-red {
+  color: #af0404;
+}
 
-    .cyverse-silver {
-        color: #e2e2e2;
-    }
+.cyverse-green {
+  color: #7cb342;
+}
 
-    .cyverse-grey {
-        color: #48515f;
-    }
+.cyverse-silver {
+  color: #e2e2e2;
+}
 
-    .rounded {
-         border-radius: 3px;
-    }
+.cyverse-grey {
+  color: #48515f;
+}
 
-    .container {
-     display: flex;
-    }
+.rounded {
+  border-radius: 3px;
+}
+.container,
+.container-fluid {
+  width: 100%;
+  padding-right: var(--bs-gutter-x, 0.75rem);
+  padding-left: var(--bs-gutter-x, 0.75rem);
+  margin-right: auto;
+  margin-left: auto;
+}
 
-    .top-div {
-  margin: 8px;
+.bottomDiv {
+  margin: 0.5rem;
   padding: 8px;
   flex-grow: 1;
-  width: 100% 
-}
-.top-center-div {
-  flex-grow: 1;
 }
 
-    .bottomDiv {
-        margin: 8px;
-        padding: 8px;
-        flex-grow: 1;
-    }
+.bottomButton {
+  padding: 0;
+  border: none;
+  background: none;
+  outline: none;
+  margin: 8px;
+  text-decoration-line: none;
+  cursor: pointer !important;
+}
+.bottomButton:hover {
+  text-decoration-line: underline;
+  color: #000000;
+}
 
-    .bottomButton {
-        padding: 0;
-        border: none;
-        background: none;
-        outline: none;
-        margin: 8px;
-        text-decoration-line: underline;
-        cursor: pointer;
-    }
+.center {
+  margin: auto;
+  text-align: center;
+}
 
-    .center {
-        margin: auto;
-        text-align: center;
-    }
+.d-flex {
+  display: flex !important;
+}
+.justify-content-center {
+  justify-content: center !important;
+}
 
+.justify-content-between {
+  justify-content: space-between !important;
+}
+
+.justify-content-around {
+  justify-content: space-around !important;
+}
+
+.btn {
+  display: inline-block;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #212529;
+  text-align: center;
+  text-decoration: none;
+  vertical-align: middle;
+  cursor: pointer !important;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+  background-color: transparent;
+  border: 1px solid transparent;
+  padding: 0.375rem 0.75rem;
+  font-size: 1rem;
+  border-radius: 0.25rem;
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out,
+    border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn {
+    transition: none;
+  }
+}
+.btn:hover {
+  color: #212529;
+}
+.btn:disabled,
+.btn.disabled,
+fieldset:disabled .btn {
+  pointer-events: none;
+  opacity: 0.65;
+}
+.btn-outline-secondary {
+  color: #ffffff;
+  border-color: #ffffff;
+}
+.btn-outline-secondary:hover {
+  color: #004471;
+  background-color: #99d9ea;
+  border-color: #99d9ea;
+}
+.btn-outline-light {
+  color: #f8f9fa !important;
+  border-color: #f8f9fa;
+}
+.btn-outline-light:hover {
+  color: #000000 !important;
+  background-color: #f8f9fa;
+  border-color: #f8f9fa;
+}
+
+.flex-col {
+  flex-direction: column !important;
+}
+
+.col-content {
+  position: relative;
+  min-height: 175px;
+}
+.align-self-end {
+  position: absolute;
+  bottom: 0px;
+}
+.mt {
+  margin-top: 1rem;
+}
+
+@media (max-width: 768px) {
+  .col {
+    width: 100%;
+    flex: 0 0 auto;
+  }
+}
+@media (max-width: 906px) {
+  .col-content {
+    min-height: 225px;
+  }
+}
+@media (min-width: 900px) {
+  .col-content {
+    min-height: 170px;
+  }
+}
+@media (max-width: 767px) {
+  .col-content {
+    min-height: 160px;
+  }
+}
 </style>
 
 </head>
 <body>
 <div class="container">
-  <div class="top-div"><a href="www.cyverse.org"><img class="icons" src="https://cyverse.org/sites/default/files/cyverse_logo.png" /></a></div>
-  <div class="top-div top-center-div"></div>
-  <div class="top-div">
-    <a href="https://de.cyverse.org/"><img class="logo" src="https://cyverse.org/sites/default/files/inline-images/de_icon.png" /></a>
+  <div class="row">
+  <div class="col-logo"><a href="www.cyverse.org" target="_blank"><img class="icons" src="https://cyverse.org/sites/default/files/cyverse_logo.png" alt="cyverse logo" /></a></div>
+  <div class="spacer"></div>
+  <div class="col-title">
+    <a href="https://de.cyverse.org/" target="_blank"><img class="logo" src="https://cyverse.org/sites/default/files/inline-images/de_icon.png" alt="de logo"/></a>
     <span class="title">Discovery Environment</span>
   </div>
+  </div>
 </div>
+<div class="container">
+  <hr class="divider" />
   <div class="content">
 <p>Hi {{.user}}</p>
 {{end}}

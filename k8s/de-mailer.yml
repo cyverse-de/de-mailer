@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: de-mailer
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      de-app: de-mailer
+  template:
+    metadata:
+      labels:
+        de-app: de-mailer
+    spec:
+      restartPolicy: Always
+      volumes:
+        - name: localtime
+          hostPath:
+            path: /etc/localtime
+        - name: timezone
+          configMap:
+            name: timezone
+            items:
+              - key: timezone
+                path: timezone
+        - name: service-configs
+          secret:
+            secretName: service-configs
+            items:
+              - key: emailservice.yml
+                path: emailservice.yml
+      containers:
+        - name: de-mailer
+          image: discoenv/de-mailer
+          resources:
+            requests:
+              cpu: "1m"
+              memory: "128Mi"
+            limits:
+              cpu: "100m"
+              memory: "256Mi"
+          args:
+            - --config
+            - /etc/iplant/de/emailservice.yml
+          volumeMounts:
+            - name: localtime
+              mountPath: /etc/localtime
+              readOnly: true
+            - name: timezone
+              mountPath: /etc/timezone
+              subPath: timezone
+            - name: service-configs
+              mountPath: /etc/iplant/de
+              readOnly: true

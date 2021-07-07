@@ -1,6 +1,6 @@
 {{ template "header" . }}
 
-<p>{{.update_message}}</p>
+<p>{{.update_message}}</p> {{if .DEAppsLink}}<p>Access VICE apps <a href="{{.DEAppsLink}}" target="_blank">here</a>.</p>{{- end}}
 
 <p><b>Request Details:</b></p>
 

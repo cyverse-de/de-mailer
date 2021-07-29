@@ -1,13 +1,14 @@
-apiVersion: skaffold/v2beta17
+apiVersion: skaffold/v1
 kind: Config
 metadata:
   name: de-mailer
-build:
-  artifacts:
-  - image: discoenv/de-mailer
-    docker:
-      dockerfile: Dockerfile
 deploy:
   kubectl:
     manifests:
-    - k8s/de-mailer.yml
+      - k8s/de-mailer.yml
+build:
+  tagPolicy:
+    gitCommit: {}
+  artifacts:
+    - image: discoenv/de-mailer
+  local: {}

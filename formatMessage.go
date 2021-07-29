@@ -59,7 +59,10 @@ func FormatMessage(emailReq EmailRequest, payload map[string](interface{}), deSe
 
 	case "request_complete":
 		if payload["request_type"].(string) == "vice" {
+			reqDetails := payload["request_details"].(map[string]interface{})
 			payload["DEAppsLink"] = deSettings.base + deSettings.apps + "?selectedFilter={\"value\":\"Interactive\",\"display\":\"VICE\"}&selectedCategory={\"name\":\"Browse All Apps\",\"id\":\"pppppppp-pppp-pppp-pppp-pppppppppppp\"}"
+			payload["ConcurrentJobs"] = reqDetails["concurrent_jobs"].(float64)
+			payload["UseCase"] = reqDetails["intended_use"].(string)
 		}
 	}
 

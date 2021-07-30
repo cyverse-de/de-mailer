@@ -52,3 +52,32 @@ spec:
             - name: service-configs
               mountPath: /etc/iplant/de
               readOnly: true
+          ports:
+            - name: listen-port
+              containerPort: 60000
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 60000
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            timeoutSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 60000
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            timeoutSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: de-mailer
+spec:
+  selector:
+    de-app: de-mailer
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: "listen-port"

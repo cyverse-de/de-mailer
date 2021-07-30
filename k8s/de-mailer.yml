@@ -54,7 +54,7 @@ spec:
               readOnly: true
           ports:
             - name: listen-port
-              containerPort: 60000
+              containerPort: 8080
           livenessProbe:
             httpGet:
               path: /

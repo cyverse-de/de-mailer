@@ -31,7 +31,7 @@ spec:
                 path: emailservice.yml
       containers:
         - name: de-mailer
-          image: discoenv/de-mailer
+          image: harbor.cyverse.org/de/de-mailer
           resources:
             requests:
               cpu: "1m"

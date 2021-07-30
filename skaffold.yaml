@@ -10,5 +10,5 @@ build:
   tagPolicy:
     gitCommit: {}
   artifacts:
-    - image: discoenv/de-mailer
+    - image: harbor.cyverse.org/de/de-mailer
   local: {}

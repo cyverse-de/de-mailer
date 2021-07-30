@@ -64,6 +64,14 @@ func FormatMessage(emailReq EmailRequest, payload map[string](interface{}), deSe
 			payload["ConcurrentJobs"] = reqDetails["concurrent_jobs"].(float64)
 			payload["UseCase"] = reqDetails["intended_use"].(string)
 		}
+	case "tool_request":
+		reqDetails := payload["toolrequestdetails"].(map[string]interface{})
+		payload["Description"] = reqDetails["description"].(string)
+		payload["Documentation"] = reqDetails["documentation_url"].(string)
+		payload["Source"] = reqDetails["source_url"].(string)
+		payload["Name"] = reqDetails["name"].(string)
+		payload["TestData"] = reqDetails["test_data_path"].(string)
+		payload["SubmittedBy"] = reqDetails["submitted_by"].(string)
 	}
 
 	tmpl_err := tmpl.Execute(&template_output, payload)

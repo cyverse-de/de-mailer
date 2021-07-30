@@ -118,7 +118,7 @@ func EmailRequestHandler(w http.ResponseWriter, r *http.Request, emailSettings E
 				w.Write([]byte(err.Error()))
 				return
 			} else {
-				toAddr := payloadMap["email_address"].(string)
+				toAddr := emailReq.To
 				r := NewEmail(emailSettings.smtpHost, emailSettings.fromAddress, []string{toAddr}, emailReq.Subject, formattedMsg.String())
 				logcabin.Info.Println("Emailing " + toAddr + " host:" + emailSettings.smtpHost)
 				ok, _ := r.SendEmail()

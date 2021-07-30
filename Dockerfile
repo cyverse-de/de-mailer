@@ -15,6 +15,7 @@ FROM scratch
 WORKDIR /app
 
 COPY --from=0 /src/de-mailer/de-mailer /bin/de-mailer
+COPY --from=0 /src/de-mailer/templates /app/templates
 
 ENTRYPOINT ["de-mailer"]
 

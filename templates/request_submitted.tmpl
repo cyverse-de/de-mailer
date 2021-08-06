@@ -1,10 +1,14 @@
+{{ template "header" . }}
 
-{{.user}} has submitted a {{.request_type}} request.
+{{.username}} has submitted a <b>{{.request_type}}</b> request.
 
 <p><b>Request Details:</b></p>
 
 <pre>
-{{.request_details}}
+{{if .Name}}<p><b>Name</b>: {{.Name}}</p>{{- end}}
+{{if .UseCase}}<p><b>UseCase</b>: {{.UseCase}}</p>{{- end}}
+{{if .ConcurrentJobs}}<p><b>Concurrent Jobs</b>: {{.ConcurrentJobs}}</p>{{- end}}
+{{if .Email}}<p><b>Email</b>: {{.Email}}</p>{{- end}}
 </pre>
 
 {{ template "footer" . }}

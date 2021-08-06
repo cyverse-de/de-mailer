@@ -1,6 +1,6 @@
 {{ template "header" . }}
 
-<p>Your request has been denied.</p>
+<p>Your <b>{{.request_type}}</b> request has been <span class="cyverse-red">denied</span>.</p>
 
 <p><b>Reason for denial:</p></b>
 {{.update_message}}
@@ -8,7 +8,8 @@
 <p><b>Request Details:</b></p>
 
 <pre>
-{{.request_details}}
+{{if .ConcurrentJobs}}<p><b>Concurrent Jobs</b>: {{.ConcurrentJobs}}</p>{{- end}}
+{{if .UseCase}}<p><b>Use Case</b>: {{.UseCase}}</p>{{- end}}
 </pre>
 
 {{ template "footer" . }}

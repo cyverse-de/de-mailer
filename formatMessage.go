@@ -57,7 +57,7 @@ func FormatMessage(emailReq EmailRequest, payload map[string](interface{}), deSe
 	case "added_to_team":
 		payload["DETeamsLink"] = deSettings.base + deSettings.teams + "/" + payload["team_name"].(string)
 
-	case "request_complete":
+	case "request_complete", "request_rejected":
 		if payload["request_type"].(string) == "vice" {
 			reqDetails := payload["request_details"].(map[string]interface{})
 			payload["DEAppsLink"] = deSettings.base + deSettings.apps + "?selectedFilter={\"value\":\"Interactive\",\"display\":\"VICE\"}&selectedCategory={\"name\":\"Browse All Apps\",\"id\":\"pppppppp-pppp-pppp-pppp-pppppppppppp\"}"
@@ -66,12 +66,22 @@ func FormatMessage(emailReq EmailRequest, payload map[string](interface{}), deSe
 		}
 	case "tool_request":
 		reqDetails := payload["toolrequestdetails"].(map[string]interface{})
+		payload["user"] = "Admin"
 		payload["Description"] = reqDetails["description"].(string)
 		payload["Documentation"] = reqDetails["documentation_url"].(string)
 		payload["Source"] = reqDetails["source_url"].(string)
 		payload["Name"] = reqDetails["name"].(string)
 		payload["TestData"] = reqDetails["test_data_path"].(string)
 		payload["SubmittedBy"] = reqDetails["submitted_by"].(string)
+		payload["DEToolRequestLink"] = deSettings.base + deSettings.admin + deSettings.tools
+
+	case "request_submitted":
+		reqDetails := payload["request_details"].(map[string]interface{})
+		payload["user"] = "Admin"
+		payload["Name"] = reqDetails["name"].(string)
+		payload["Email"] = reqDetails["email"].(string)
+		payload["UseCase"] = reqDetails["intended_use"].(string)
+		payload["ConcurrentJobs"] = reqDetails["concurrent_jobs"].(float64)
 	}
 
 	tmpl_err := tmpl.Execute(&template_output, payload)

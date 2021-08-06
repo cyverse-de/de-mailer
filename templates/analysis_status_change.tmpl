@@ -1,6 +1,6 @@
 {{ template "header" . }}
 
-<p>The status of <b>{{.analysisname}}</b> is now {{if eq .analysisstatus "Completed"}} <b style="color: powderblue;">{{.analysisstatus}}</b> {{ else if eq .analysisstatus "Failed" }} <b style="color: red;">{{.analysisstatus}}</b> {{ else }} <b>{{.analysisstatus}}</b> {{- end}}.</p>
+<p>The status of <b>{{.analysisname}}</b> is now {{if eq .analysisstatus "Completed"}} <span class="cyverse-green"><b>{{.analysisstatus}}.</b></span> {{ else if eq .analysisstatus "Failed" }} <span class="cyverse-red"><b>{{.analysisstatus}}.</b></span> {{ else }} <span><b>{{.analysisstatus}}.</b></span> {{- end}}</p>
 <p>
 <b>Comments</b>:
 {{.analysisdescription}}

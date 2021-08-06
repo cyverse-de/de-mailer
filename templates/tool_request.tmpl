@@ -1,4 +1,6 @@
-<p>{{.username}} has requested the installation of a new tool in the {{.environment}}
+{{ template "header" . }}
+
+<p>{{.username}} has requested the installation of a new tool in the <a href={{ .DEToolRequestLink}} target="_blank">{{.environment}}</a>
 environment.</p>
 
 <p><b>Request details:</b></p>

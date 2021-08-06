@@ -73,7 +73,7 @@ func parseRequestBody(r *http.Request) (EmailRequest, map[string](interface{}), 
 		logcabin.Error.Println(err)
 		return emailReq, payloadMap, err
 	}
-	logcabin.Info.Println(string(body))
+	fmt.Println(string(body))
 
 	err = json.Unmarshal(body, &emailReq)
 

@@ -29,6 +29,14 @@ type DESettings struct {
 	vice        string
 }
 
+// getErrorResponseCode returns the response code to use for the given error.
+func getErrorResponseCode(err error) int {
+	if httpError, ok := err.(*HTTPError); ok {
+		return httpError.Code()
+	}
+	return http.StatusInternalServerError
+}
+
 //copied from https://github.com/cyverse-de/email-requests/blob/master/main.go
 // parseCommandLine parses the command line and returns an options structure containing command-line options and
 // parameters.
@@ -70,20 +78,24 @@ func parseRequestBody(r *http.Request) (EmailRequest, map[string](interface{}), 
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		logcabin.Error.Println(err)
-		return emailReq, payloadMap, err
+		msg := fmt.Sprintf("failed to read request body: %s", err.Error())
+		logcabin.Error.Println(msg)
+		return emailReq, payloadMap, NewHTTPError(http.StatusInternalServerError, msg)
 	}
 	fmt.Println(string(body))
 
 	err = json.Unmarshal(body, &emailReq)
 
 	if err != nil {
-		logcabin.Error.Println(err)
-		return emailReq, payloadMap, err
+		msg := fmt.Sprintf("failed to parse request body: %s", err.Error())
+		logcabin.Error.Println(msg)
+		return emailReq, payloadMap, NewHTTPError(http.StatusBadRequest, msg)
 	} else {
 		err := json.Unmarshal(emailReq.Values, &payloadMap)
 		if err != nil {
-			logcabin.Error.Println(err)
+			msg := fmt.Sprintf("failed to parse template values: %s", err.Error())
+			logcabin.Error.Println(msg)
+			return emailReq, payloadMap, NewHTTPError(http.StatusBadRequest, msg)
 		}
 		return emailReq, payloadMap, err
 	}
@@ -104,8 +116,9 @@ func EmailRequestHandler(w http.ResponseWriter, r *http.Request, emailSettings E
 		emailReq, payloadMap, err := parseRequestBody(r)
 		if err != nil {
 			logcabin.Error.Println(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
+			//w.WriteHeader(getErrorResponseCode(err))
+			//w.Write([]byte(err.Error()))
+			JSONError(w, r, (string(err.Error())), getErrorResponseCode(err))
 			return
 		} else {
 			if emailReq.FromAddr == "" {
@@ -114,8 +127,9 @@ func EmailRequestHandler(w http.ResponseWriter, r *http.Request, emailSettings E
 			formattedMsg, err := FormatMessage(emailReq, payloadMap, deSettings)
 			if err != nil {
 				logcabin.Error.Println(err)
-				w.WriteHeader(http.StatusInternalServerError)
-				w.Write([]byte(err.Error()))
+				//	w.WriteHeader(http.StatusInternalServerError)
+				//	w.Write([]byte(err.Error()))
+				JSONError(w, r, (string(err.Error())), getErrorResponseCode(err))
 				return
 			} else {
 				toAddr := emailReq.To
@@ -133,6 +147,7 @@ func EmailRequestHandler(w http.ResponseWriter, r *http.Request, emailSettings E
 		logcabin.Error.Println("Unsupported request method.")
 		w.WriteHeader(405)
 		w.Write([]byte("Unsupported request method."))
+		JSONError(w, r, "Unsupported request method.", 405)
 		return
 	}
 }

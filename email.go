@@ -42,7 +42,6 @@ func (r *EmailClient) Send(to []string, subject, body string) error {
 
 	d := gomail.Dialer{Host: r.smtpHost, Port: r.smtpPort}
 
-	// Send the email to Bob, Cora and Dan.
 	if err := d.DialAndSend(m); err != nil {
 		logcabin.Error.Println(err)
 		return err

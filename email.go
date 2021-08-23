@@ -6,10 +6,20 @@ import (
 	"github.com/cyverse-de/logcabin"
 )
 
-//email settings
-type EmailSettings struct {
+// EmailClient is a client used to send email messages to an SMTP server.
+type EmailClient struct {
 	smtpHost    string
+	smtpPort    int
 	fromAddress string
+}
+
+// NewEmailClient creates a new email client.
+func NewEmailClient(smtpHost string, from string) *EmailClient {
+	return &EmailClient{
+		smtpHost:    smtpHost,
+		smtpPort:    25,
+		fromAddress: from,
+	}
 }
 
 //Request struct
@@ -21,32 +31,22 @@ type Email struct {
 	body    string
 }
 
-func NewEmail(smtpHost string, from string, to []string, subject, body string) *Email {
-	return &Email{
-		host:    smtpHost,
-		from:    from,
-		to:      to,
-		subject: subject,
-		body:    body,
-	}
-}
-
-func (r *Email) SendEmail() (bool, error) {
+func (r *EmailClient) Send(to []string, subject, body string) error {
 
 	m := gomail.NewMessage()
-	m.SetHeader("From", r.from)
+	m.SetHeader("From", r.fromAddress)
 	m.SetHeader("mailed-by", "cyverse.org")
-	m.SetHeader("To", r.to[0])
-	m.SetHeader("Subject", r.subject)
-	m.SetBody("text/html", r.body)
+	m.SetHeader("To", to[0])
+	m.SetHeader("Subject", subject)
+	m.SetBody("text/html", body)
 
-	d := gomail.Dialer{Host: r.host, Port: 25}
+	d := gomail.Dialer{Host: r.smtpHost, Port: r.smtpPort}
 
 	// Send the email to Bob, Cora and Dan.
 	if err := d.DialAndSend(m); err != nil {
 		logcabin.Error.Println(err)
-		return false, err
+		return err
 	}
 
-	return true, nil
+	return nil
 }

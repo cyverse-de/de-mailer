@@ -101,57 +101,6 @@ func parseRequestBody(r *http.Request) (EmailRequest, map[string](interface{}), 
 	}
 }
 
-// handles email notification requests
-func EmailRequestHandler(w http.ResponseWriter, r *http.Request, emailSettings EmailSettings, deSettings DESettings) {
-	if r.URL.Path != "/" {
-		http.Error(w, "404 not found.", http.StatusNotFound)
-		return
-	}
-	switch r.Method {
-	case "GET":
-		w.WriteHeader(200)
-		w.Write([]byte("A service that handles email-requests and send out emails to users."))
-	case "POST":
-		logcabin.Info.Println("Post request received.")
-		emailReq, payloadMap, err := parseRequestBody(r)
-		if err != nil {
-			logcabin.Error.Println(err)
-			//w.WriteHeader(getErrorResponseCode(err))
-			//w.Write([]byte(err.Error()))
-			JSONError(w, r, (string(err.Error())), getErrorResponseCode(err))
-			return
-		} else {
-			if emailReq.FromAddr == "" {
-				emailReq.FromAddr = emailSettings.fromAddress
-			}
-			formattedMsg, err := FormatMessage(emailReq, payloadMap, deSettings)
-			if err != nil {
-				logcabin.Error.Println(err)
-				//	w.WriteHeader(http.StatusInternalServerError)
-				//	w.Write([]byte(err.Error()))
-				JSONError(w, r, (string(err.Error())), getErrorResponseCode(err))
-				return
-			} else {
-				toAddr := emailReq.To
-				r := NewEmail(emailSettings.smtpHost, emailSettings.fromAddress, []string{toAddr}, emailReq.Subject, formattedMsg.String())
-				logcabin.Info.Println("Emailing " + toAddr + " host:" + emailSettings.smtpHost)
-				ok, _ := r.SendEmail()
-				fmt.Println(ok)
-				w.WriteHeader(200)
-				w.Write([]byte("Request processed successfully."))
-				return
-			}
-		}
-
-	default:
-		logcabin.Error.Println("Unsupported request method.")
-		w.WriteHeader(405)
-		w.Write([]byte("Unsupported request method."))
-		JSONError(w, r, "Unsupported request method.", 405)
-		return
-	}
-}
-
 func main() {
 	// Initialize logging.
 	logcabin.Init("de-mailer", "de-mailer")
@@ -167,10 +116,7 @@ func main() {
 	//test config
 	logcabin.Info.Println(config.GetString("de.base"))
 
-	emailSettings := EmailSettings{
-		smtpHost:    config.GetString("email.smtpHost"),
-		fromAddress: config.GetString("email.fromAddress"),
-	}
+	emailClient := NewEmailClient(config.GetString("email.smtpHost"), config.GetString("email.fromAddress"))
 
 	deSettings := DESettings{
 		base:        config.GetString("de.base"),
@@ -185,8 +131,8 @@ func main() {
 		vice:        config.GetString("de.vice"),
 	}
 
-	http.HandleFunc("/", func(writer http.ResponseWriter, reader *http.Request) {
-		EmailRequestHandler(writer, reader, emailSettings, deSettings)
-	})
+	api := NewAPI(emailClient, &deSettings)
+	http.HandleFunc("/", api.EmailRequestHandler)
+	logcabin.Error.Fatal(http.ListenAndServe(":8080", nil))
 	logcabin.Error.Fatal(http.ListenAndServe(":8080", nil))
 }

@@ -3,11 +3,13 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"html/template"
 	"strconv"
 	"time"
 
 	"github.com/cyverse-de/logcabin"
+	"github.com/mitchellh/mapstructure"
 )
 
 // message in the email request
@@ -22,6 +24,41 @@ type EmailRequest struct {
 	Template string
 	Subject  string
 	Values   json.RawMessage
+}
+
+// VICERequestCompleteDetails contains the request detail fields that we need to extract when a VICE access request is
+// marked as complete.
+type VICERequestCompleteDetails struct {
+	ConcurrentJobs int64  `mapstructure:"concurrent_jobs"`
+	UseCase        string `mapstructure:"intended_use"`
+}
+
+// ToolRequestDetails contains the request detail fields that we need to extract for tool requests.
+type ToolRequestDetails struct {
+	Description   string `mapstructure:"description"`
+	Documentation string `mapstructure:"documentation_url"`
+	Source        string `mapstructure:"source_url"`
+	Name          string `mapstructure:"name"`
+	TestData      string `mapstructure:"test_data_path"`
+	SubmittedBy   string `mapstructure:"submitted_by"`
+}
+
+// RequestSubmittedDetails contains the request detail fields that we need to extract for request submissions.
+type RequestSubmittedDetails struct {
+	Name           string `mapstructure:"name"`
+	Email          string `mapstructure:"email"`
+	UseCase        string `mapstructure:"intended_use"`
+	ConcurrentJobs int64  `mapstructure:"concurrent_jobs"`
+}
+
+// ExtractDetails extracts fields from a nested object in the payload.
+func ExtractDetails(payload map[string]interface{}, fieldName string, dest interface{}) error {
+	source, ok := payload[fieldName]
+	if !ok {
+		return fmt.Errorf("missing required payload field: %s", fieldName)
+	}
+
+	return mapstructure.Decode(source, dest)
 }
 
 //format email message using templates
@@ -59,29 +96,42 @@ func FormatMessage(emailReq EmailRequest, payload map[string](interface{}), deSe
 
 	case "request_complete", "request_rejected":
 		if payload["request_type"].(string) == "vice" {
-			reqDetails := payload["request_details"].(map[string]interface{})
+			var viceRequestDetails VICERequestCompleteDetails
+			err := ExtractDetails(payload, "request_details", &viceRequestDetails)
+			if err != nil {
+				return template_output, err
+			}
+			payload["ConcurrentJobs"] = viceRequestDetails.ConcurrentJobs
+			payload["UseCase"] = viceRequestDetails.UseCase
 			payload["DEAppsLink"] = deSettings.base + deSettings.apps + "?selectedFilter={\"value\":\"Interactive\",\"display\":\"VICE\"}&selectedCategory={\"name\":\"Browse All Apps\",\"id\":\"pppppppp-pppp-pppp-pppp-pppppppppppp\"}"
-			payload["ConcurrentJobs"] = reqDetails["concurrent_jobs"].(float64)
-			payload["UseCase"] = reqDetails["intended_use"].(string)
 		}
 	case "tool_request":
-		reqDetails := payload["toolrequestdetails"].(map[string]interface{})
+		var reqDetails ToolRequestDetails
+		err := ExtractDetails(payload, "toolrequestdetails", &reqDetails)
+		if err != nil {
+			return template_output, err
+		}
 		payload["user"] = "Admin"
-		payload["Description"] = reqDetails["description"].(string)
-		payload["Documentation"] = reqDetails["documentation_url"].(string)
-		payload["Source"] = reqDetails["source_url"].(string)
-		payload["Name"] = reqDetails["name"].(string)
-		payload["TestData"] = reqDetails["test_data_path"].(string)
-		payload["SubmittedBy"] = reqDetails["submitted_by"].(string)
+		payload["Description"] = reqDetails.Description
+		payload["Documentation"] = reqDetails.Documentation
+		payload["Source"] = reqDetails.Source
+		payload["Name"] = reqDetails.Name
+		payload["TestData"] = reqDetails.TestData
+		payload["SubmittedBy"] = reqDetails.SubmittedBy
 		payload["DEToolRequestLink"] = deSettings.base + deSettings.admin + deSettings.tools
 
 	case "request_submitted":
-		reqDetails := payload["request_details"].(map[string]interface{})
+		//reqDetails := payload["request_details"].(map[string]interface{})
+		var reqDetails RequestSubmittedDetails
+		err := ExtractDetails(payload, "request_details", &reqDetails)
+		if err != nil {
+			return template_output, err
+		}
+		payload["Name"] = reqDetails.Name
+		payload["Email"] = reqDetails.Email
+		payload["UseCase"] = reqDetails.UseCase
+		payload["ConcurrentJobs"] = reqDetails.ConcurrentJobs
 		payload["user"] = "Admin"
-		payload["Name"] = reqDetails["name"].(string)
-		payload["Email"] = reqDetails["email"].(string)
-		payload["UseCase"] = reqDetails["intended_use"].(string)
-		payload["ConcurrentJobs"] = reqDetails["concurrent_jobs"].(float64)
 	}
 
 	tmpl_err := tmpl.Execute(&template_output, payload)

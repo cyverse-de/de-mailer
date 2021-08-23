@@ -36,7 +36,7 @@ func (a *API) EmailRequestHandler(w http.ResponseWriter, r *http.Request) {
 			logcabin.Error.Println(err)
 			//w.WriteHeader(getErrorResponseCode(err))
 			//w.Write([]byte(err.Error()))
-			JSONError(w, r, (string(err.Error())), getErrorResponseCode(err))
+			JSONError(w, r, err.Error(), getErrorResponseCode(err))
 			return
 		} else {
 			if emailReq.FromAddr == "" {
@@ -47,7 +47,7 @@ func (a *API) EmailRequestHandler(w http.ResponseWriter, r *http.Request) {
 				logcabin.Error.Println(err)
 				//	w.WriteHeader(http.StatusInternalServerError)
 				//	w.Write([]byte(err.Error()))
-				JSONError(w, r, (string(err.Error())), getErrorResponseCode(err))
+				JSONError(w, r, err.Error(), getErrorResponseCode(err))
 				return
 			} else {
 				toAddr := emailReq.To

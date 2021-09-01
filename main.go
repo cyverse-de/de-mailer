@@ -22,7 +22,7 @@ type DESettings struct {
 	analyses    string
 	teams       string
 	tools       string
-	communities string
+	collections string
 	apps        string
 	admin       string
 	doi         string
@@ -124,7 +124,7 @@ func main() {
 		analyses:    config.GetString("de.analyses"),
 		teams:       config.GetString("de.teams"),
 		tools:       config.GetString("de.tools"),
-		communities: config.GetString("de.communities"),
+		collections: config.GetString("de.collections"),
 		apps:        config.GetString("de.apps"),
 		admin:       config.GetString("de.admin"),
 		doi:         config.GetString("de.doi"),

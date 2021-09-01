@@ -70,7 +70,7 @@ func FormatMessage(emailReq EmailRequest, payload map[string](interface{}), deSe
 	payload["DETeamsLink"] = deSettings.base + deSettings.teams
 	payload["DEAdminDoiRequestLink"] = deSettings.base + deSettings.admin + deSettings.doi
 	payload["DEToolsLink"] = deSettings.base + deSettings.tools
-	payload["DECommunitiesLink"] = deSettings.base + deSettings.collections
+	payload["DECollectionsLink"] = deSettings.base + deSettings.collections
 	payload["DEAppsLink"] = deSettings.base + deSettings.apps
 	payload["DEPublicationRequestsLink"] = deSettings.base + deSettings.admin + deSettings.apps
 	payload["DEPidRequestLink"] = deSettings.base + deSettings.admin + deSettings.doi

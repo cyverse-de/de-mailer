@@ -42,7 +42,7 @@ func (a *API) EmailRequestHandler(w http.ResponseWriter, r *http.Request) {
 			if emailReq.FromAddr == "" {
 				emailReq.FromAddr = a.emailClient.fromAddress
 			}
-			formattedMsg, err := FormatMessage(emailReq, payloadMap, *a.deSettings)
+			formattedMsg, isHtml, err := FormatMessage(emailReq, payloadMap, *a.deSettings)
 			if err != nil {
 				logcabin.Error.Println(err)
 				//	w.WriteHeader(http.StatusInternalServerError)
@@ -52,10 +52,8 @@ func (a *API) EmailRequestHandler(w http.ResponseWriter, r *http.Request) {
 			} else {
 				toAddr := emailReq.To
 				logcabin.Info.Println("Emailing " + toAddr + " host:" + a.emailClient.smtpHost)
-				var mimeType string
-				if emailReq.Template == "blank" {
-					mimeType = TEXT_MIME_TYPE
-				} else {
+				var mimeType string = TEXT_MIME_TYPE
+				if isHtml {
 					mimeType = HTML_MIME_TYPE
 				}
 				err := a.emailClient.Send([]string{toAddr}, mimeType, emailReq.Subject, formattedMsg.String())

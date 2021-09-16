@@ -4,8 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"html/template"
+	html "html/template"
+	"io"
+	"os"
 	"strconv"
+	text "text/template"
 	"time"
 
 	"github.com/cyverse-de/logcabin"
@@ -24,6 +27,10 @@ type EmailRequest struct {
 	Template string
 	Subject  string
 	Values   json.RawMessage
+}
+
+type Templater interface {
+	Execute(io.Writer, interface{}) error
 }
 
 // VICERequestCompleteDetails contains the request detail fields that we need to extract when a VICE access request is
@@ -62,7 +69,7 @@ func ExtractDetails(payload map[string]interface{}, fieldName string, dest inter
 }
 
 //format email message using templates
-func FormatMessage(emailReq EmailRequest, payload map[string](interface{}), deSettings DESettings) (bytes.Buffer, error) {
+func FormatMessage(emailReq EmailRequest, payload map[string](interface{}), deSettings DESettings) (bytes.Buffer, bool, error) {
 	logcabin.Info.Println("Received formatting request with template " + emailReq.Template)
 	var template_output bytes.Buffer
 
@@ -75,10 +82,20 @@ func FormatMessage(emailReq EmailRequest, payload map[string](interface{}), deSe
 	payload["DEPublicationRequestsLink"] = deSettings.base + deSettings.admin + deSettings.apps
 	payload["DEPidRequestLink"] = deSettings.base + deSettings.admin + deSettings.doi
 
-	tmpl, err := template.ParseFiles("./templates/"+emailReq.Template+".tmpl", "./templates/header.tmpl", "./templates/footer.tmpl")
+	var isHtml bool = false
+	var tmpl Templater
+	var err error
+
+	if _, err = os.Stat("./templates/html/" + emailReq.Template + ".tmpl"); err == nil {
+		isHtml = true
+		tmpl, err = html.ParseFiles("./templates/html/"+emailReq.Template+".tmpl", "./templates/html/header.tmpl", "./templates/html/footer.tmpl")
+	} else if _, err = os.Stat("./templates/text/" + emailReq.Template + ".tmpl"); err == nil {
+		tmpl, err = text.ParseFiles("./templates/html/" + emailReq.Template + ".tmpl")
+	}
+
 	if err != nil {
 		logcabin.Error.Println(err)
-		return template_output, err
+		return template_output, isHtml, err
 	}
 
 	switch emailReq.Template {
@@ -99,7 +116,7 @@ func FormatMessage(emailReq EmailRequest, payload map[string](interface{}), deSe
 			var viceRequestDetails VICERequestCompleteDetails
 			err := ExtractDetails(payload, "request_details", &viceRequestDetails)
 			if err != nil {
-				return template_output, err
+				return template_output, isHtml, err
 			}
 			payload["ConcurrentJobs"] = viceRequestDetails.ConcurrentJobs
 			payload["UseCase"] = viceRequestDetails.UseCase
@@ -109,7 +126,7 @@ func FormatMessage(emailReq EmailRequest, payload map[string](interface{}), deSe
 		var reqDetails ToolRequestDetails
 		err := ExtractDetails(payload, "toolrequestdetails", &reqDetails)
 		if err != nil {
-			return template_output, err
+			return template_output, isHtml, err
 		}
 		payload["user"] = "Admin"
 		payload["Description"] = reqDetails.Description
@@ -125,7 +142,7 @@ func FormatMessage(emailReq EmailRequest, payload map[string](interface{}), deSe
 		var reqDetails RequestSubmittedDetails
 		err := ExtractDetails(payload, "request_details", &reqDetails)
 		if err != nil {
-			return template_output, err
+			return template_output, isHtml, err
 		}
 		payload["Name"] = reqDetails.Name
 		payload["Email"] = reqDetails.Email
@@ -138,6 +155,6 @@ func FormatMessage(emailReq EmailRequest, payload map[string](interface{}), deSe
 	if tmpl_err != nil {
 		logcabin.Error.Println(tmpl_err)
 	}
-	return template_output, tmpl_err
+	return template_output, isHtml, tmpl_err
 
 }

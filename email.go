@@ -25,15 +25,6 @@ func NewEmailClient(smtpHost string, from string) *EmailClient {
 	}
 }
 
-//Request struct
-type Email struct {
-	host    string
-	from    string
-	to      []string
-	subject string
-	body    string
-}
-
 func (r *EmailClient) Send(to []string, mimeType, subject, body string) error {
 
 	m := gomail.NewMessage()

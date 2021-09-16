@@ -49,9 +49,9 @@ func JSONError(w http.ResponseWriter, r *http.Request, errorMsg string, code int
 	b, err := json.Marshal(errorObj)
 	if err == nil {
 		w.WriteHeader(code)
-		w.Write(b)
+		w.Write(b) // nolint:errcheck
 	} else { // something very bad happened and we shouldn't hit this point
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("could not fulfill request and return a result; please notify site admin"))
+		w.Write([]byte("could not fulfill request and return a result; please notify site admin")) // nolint:errcheck
 	}
 }

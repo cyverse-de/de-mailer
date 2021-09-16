@@ -12,11 +12,6 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-// message in the email request
-type message struct {
-	Text string
-}
-
 // email request received
 type EmailRequest struct {
 	FromAddr string

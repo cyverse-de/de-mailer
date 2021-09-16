@@ -58,12 +58,12 @@ func parseCommandLine() *commandLineOptionValues {
 	// Parse the command line, handling requests for help and usage errors.
 	_, err := opt.Parse(os.Args[1:])
 	if opt.Called("help") {
-		fmt.Fprintf(os.Stderr, opt.Help())
+		fmt.Fprint(os.Stderr, opt.Help())
 		os.Exit(0)
 	}
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %s\n\n", err)
-		fmt.Fprintf(os.Stderr, opt.Help(getoptions.HelpSynopsis))
+		fmt.Fprint(os.Stderr, opt.Help(getoptions.HelpSynopsis))
 		os.Exit(1)
 	}
 

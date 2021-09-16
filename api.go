@@ -28,7 +28,7 @@ func (a *API) EmailRequestHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 		w.WriteHeader(200)
-		w.Write([]byte("A service that handles email-requests and send out emails to users."))
+		w.Write([]byte("A service that handles email-requests and send out emails to users.")) // nolint:errcheck
 	case "POST":
 		logcabin.Info.Println("Post request received.")
 		emailReq, payloadMap, err := parseRequestBody(r)
@@ -63,7 +63,10 @@ func (a *API) EmailRequestHandler(w http.ResponseWriter, r *http.Request) {
 					logcabin.Error.Println("failed to send email to " + toAddr + " host:" + a.emailClient.smtpHost)
 				}
 				w.WriteHeader(200)
-				w.Write([]byte("Request processed successfully."))
+				_, err = w.Write([]byte("Request processed successfully."))
+				if err != nil {
+					logcabin.Error.Printf("Failed to send response: %s\n", err)
+				}
 				return
 			}
 		}
@@ -71,7 +74,7 @@ func (a *API) EmailRequestHandler(w http.ResponseWriter, r *http.Request) {
 	default:
 		logcabin.Error.Println("Unsupported request method.")
 		w.WriteHeader(405)
-		w.Write([]byte("Unsupported request method."))
+		w.Write([]byte("Unsupported request method.")) // nolint:errcheck
 		JSONError(w, r, "Unsupported request method.", 405)
 		return
 	}

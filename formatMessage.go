@@ -93,6 +93,7 @@ func FormatMessage(emailReq EmailRequest, payload map[string](interface{}), deSe
 		tmpl, err = text.ParseFiles("./templates/text/" + emailReq.Template + ".tmpl")
 	}
 
+	// this will catch errors thrown by the if conditions or within the code blocks
 	if err != nil {
 		logcabin.Error.Println(err)
 		return template_output, isHtml, err

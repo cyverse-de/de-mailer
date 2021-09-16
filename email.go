@@ -6,6 +6,9 @@ import (
 	"github.com/cyverse-de/logcabin"
 )
 
+const HTML_MIME_TYPE = "text/html"
+const TEXT_MIME_TYPE = "text/plain"
+
 // EmailClient is a client used to send email messages to an SMTP server.
 type EmailClient struct {
 	smtpHost    string
@@ -31,14 +34,14 @@ type Email struct {
 	body    string
 }
 
-func (r *EmailClient) Send(to []string, subject, body string) error {
+func (r *EmailClient) Send(to []string, mimeType, subject, body string) error {
 
 	m := gomail.NewMessage()
 	m.SetHeader("From", r.fromAddress)
 	m.SetHeader("mailed-by", "cyverse.org")
 	m.SetHeader("To", to[0])
 	m.SetHeader("Subject", subject)
-	m.SetBody("text/html", body)
+	m.SetBody(mimeType, body)
 
 	d := gomail.Dialer{Host: r.smtpHost, Port: r.smtpPort}
 

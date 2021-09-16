@@ -90,7 +90,7 @@ func FormatMessage(emailReq EmailRequest, payload map[string](interface{}), deSe
 		isHtml = true
 		tmpl, err = html.ParseFiles("./templates/html/"+emailReq.Template+".tmpl", "./templates/html/header.tmpl", "./templates/html/footer.tmpl")
 	} else if _, err = os.Stat("./templates/text/" + emailReq.Template + ".tmpl"); err == nil {
-		tmpl, err = text.ParseFiles("./templates/html/" + emailReq.Template + ".tmpl")
+		tmpl, err = text.ParseFiles("./templates/text/" + emailReq.Template + ".tmpl")
 	}
 
 	if err != nil {

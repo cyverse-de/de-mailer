@@ -52,11 +52,11 @@ func (a *API) EmailRequestHandler(w http.ResponseWriter, r *http.Request) {
 			} else {
 				toAddr := emailReq.To
 				logcabin.Info.Println("Emailing " + toAddr + " host:" + a.emailClient.smtpHost)
-				var mimeType string = "text/plain"
+				var mimeType string = TEXT_MIME_TYPE
 				if isHtml {
-					mimeType = "text/html"
+					mimeType = HTML_MIME_TYPE
 				}
-				err := a.emailClient.Send([]string{toAddr}, emailReq.Subject, mimeType, formattedMsg.String())
+				err := a.emailClient.Send([]string{toAddr}, mimeType, emailReq.Subject, formattedMsg.String())
 				if err != nil {
 					logcabin.Error.Println("failed to send email to " + toAddr + " host:" + a.emailClient.smtpHost)
 				}

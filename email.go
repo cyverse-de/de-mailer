@@ -4,6 +4,7 @@ import (
 	"gopkg.in/gomail.v2"
 
 	"github.com/cyverse-de/logcabin"
+	"jaytaylor.com/html2text"
 )
 
 const HTML_MIME_TYPE = "text/html"
@@ -33,6 +34,14 @@ func (r *EmailClient) Send(to []string, mimeType, subject, body string) error {
 	m.SetHeader("To", to[0])
 	m.SetHeader("Subject", subject)
 	m.SetBody(mimeType, body)
+	if mimeType == HTML_MIME_TYPE {
+		plaintext, err := html2text.FromString(body)
+		if err != nil {
+			logcabin.Info.Println(err)
+		} else {
+			m.AddAlternative("text/plain", plaintext)
+		}
+	}
 
 	d := gomail.Dialer{Host: r.smtpHost, Port: r.smtpPort}
 

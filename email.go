@@ -33,14 +33,17 @@ func (r *EmailClient) Send(to []string, mimeType, subject, body string) error {
 	m.SetHeader("mailed-by", "cyverse.org")
 	m.SetHeader("To", to[0])
 	m.SetHeader("Subject", subject)
-	m.SetBody(mimeType, body)
 	if mimeType == HTML_MIME_TYPE {
 		plaintext, err := html2text.FromString(body)
 		if err != nil {
+			m.SetBody(mimeType, body)
 			logcabin.Info.Println(err)
 		} else {
-			m.AddAlternative("text/plain", plaintext)
+			m.SetBody("text/plain", plaintext)
+			m.AddAlternative(mimeType, body)
 		}
+	} else {
+		m.SetBody(mimeType, body)
 	}
 
 	d := gomail.Dialer{Host: r.smtpHost, Port: r.smtpPort}

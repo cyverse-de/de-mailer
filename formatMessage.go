@@ -123,6 +123,9 @@ func FormatMessage(emailReq EmailRequest, payload map[string](interface{}), deSe
 	case "added_to_team":
 		var teamName string
 		err = ExtractDetails(payload, &teamName, "team_name")
+		if err != nil {
+			logcabin.Error.Printf("unable to extract the team name: %s", err)
+		}
 
 		payload["DETeamsLink"] = deSettings.base + deSettings.teams + "/" + payload["team_name"].(string)
 

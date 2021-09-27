@@ -54,13 +54,15 @@ type RequestSubmittedDetails struct {
 }
 
 // ExtractDetails extracts fields from a nested object in the payload.
-func ExtractDetails(payload map[string]interface{}, fieldName string, dest interface{}) error {
-	source, ok := payload[fieldName]
-	if !ok {
-		return fmt.Errorf("missing required payload field: %s", fieldName)
+func ExtractDetails(payload map[string]interface{}, dest interface{}, fieldNames ...string) error {
+	for _, fieldName := range fieldNames {
+		source, ok := payload[fieldName]
+		if ok && source != nil {
+			return mapstructure.Decode(source, dest)
+		}
 	}
 
-	return mapstructure.Decode(source, dest)
+	return fmt.Errorf("required payload field not found: %s", fieldNames)
 }
 
 //format email message using templates
@@ -96,21 +98,41 @@ func FormatMessage(emailReq EmailRequest, payload map[string](interface{}), deSe
 
 	switch emailReq.Template {
 	case "analysis_status_change":
-		mill_sec, parse_err := strconv.ParseInt(payload["startdate"].(string), 10, 64)
+		var startDateText, resultFolderPath string
+
+		// Format the analysis start date.
+		err = ExtractDetails(payload, &startDateText, "startdate")
+		if err != nil {
+			logcabin.Error.Printf("unable to extract the analysis start date: %s", err)
+			startDateText = ""
+		}
+		mill_sec, parse_err := strconv.ParseInt(startDateText, 10, 64)
 		if parse_err != nil {
 			logcabin.Error.Println(parse_err)
 		}
 		start_date := time.Unix(0, mill_sec*int64(time.Millisecond))
-		payload["DEOutputFolderLink"] = deSettings.base + deSettings.data + payload["analysisresultsfolder"].(string)
 		payload["startdate"] = start_date
 
+		// Format the link to the analysis result folder.
+		err = ExtractDetails(payload, &resultFolderPath, "analysisresultsfolder", "result_folder_path")
+		if err != nil {
+			logcabin.Error.Printf("unable to extract the analysis result folder path: %s", err)
+		}
+		payload["DEOutputFolderLink"] = deSettings.base + deSettings.data + resultFolderPath
+
 	case "added_to_team":
+		var teamName string
+		err = ExtractDetails(payload, &teamName, "team_name")
+		if err != nil {
+			logcabin.Error.Printf("unable to extract the team name: %s", err)
+		}
+
 		payload["DETeamsLink"] = deSettings.base + deSettings.teams + "/" + payload["team_name"].(string)
 
 	case "request_complete", "request_rejected":
 		if payload["request_type"].(string) == "vice" {
 			var viceRequestDetails VICERequestCompleteDetails
-			err := ExtractDetails(payload, "request_details", &viceRequestDetails)
+			err := ExtractDetails(payload, &viceRequestDetails, "request_details")
 			if err != nil {
 				return template_output, isHtml, err
 			}
@@ -120,7 +142,7 @@ func FormatMessage(emailReq EmailRequest, payload map[string](interface{}), deSe
 		}
 	case "tool_request":
 		var reqDetails ToolRequestDetails
-		err := ExtractDetails(payload, "toolrequestdetails", &reqDetails)
+		err := ExtractDetails(payload, &reqDetails, "toolrequestdetails")
 		if err != nil {
 			return template_output, isHtml, err
 		}
@@ -136,7 +158,7 @@ func FormatMessage(emailReq EmailRequest, payload map[string](interface{}), deSe
 	case "request_submitted":
 		//reqDetails := payload["request_details"].(map[string]interface{})
 		var reqDetails RequestSubmittedDetails
-		err := ExtractDetails(payload, "request_details", &reqDetails)
+		err := ExtractDetails(payload, &reqDetails, "request_details")
 		if err != nil {
 			return template_output, isHtml, err
 		}

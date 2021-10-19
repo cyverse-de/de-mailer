@@ -1,6 +1,7 @@
 {{ template "header" . }}
 
-<p>The DOI Permanent ID has been created for {{.path}}</p>
+<p>The DOI Permanent ID has been created for
+<a href="{{.DEDataLink}}{{.path}}" target="_blank" rel="noopener noreferrer">{{.path}}</a></p>
 
 <p>The dataset is available via its landing page at
 <a href="https://doi.org/{{.doi}}" target="_blank" rel="noopener noreferrer">https://doi.org/{{.doi}}</a>.</p>

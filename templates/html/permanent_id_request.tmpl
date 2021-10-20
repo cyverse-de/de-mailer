@@ -1,6 +1,7 @@
 <p>Dear Curator,</p>
 
-<p>We are notifying you that {{.user}} has requested a new <a href="{{.DEPidRequestLink}}" target="_blank">{{.request_type}}</a> Permanent ID for the
-{{.path}} dataset in the {{.environment}} environment.</p>
-
-{{ template "footer" . }}
+<p>We are notifying you that {{.user}} ({{.username}}) has requested a new
+<a href="{{.DEAdminDoiRequestLink}}" target="_blank" rel="noopener noreferrer">{{.request_type}}</a>
+Permanent ID for the
+<a href="{{.DEDataLink}}{{.path}}" target="_blank" rel="noopener noreferrer">{{.path}}</a>
+dataset in the {{.environment}} environment.</p>

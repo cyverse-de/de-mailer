@@ -71,6 +71,7 @@ func FormatMessage(emailReq EmailRequest, payload map[string](interface{}), deSe
 	var template_output bytes.Buffer
 
 	payload["DELink"] = deSettings.base
+	payload["DEDataLink"] = deSettings.base + deSettings.data
 	payload["DETeamsLink"] = deSettings.base + deSettings.teams
 	payload["DEAdminDoiRequestLink"] = deSettings.base + deSettings.admin + deSettings.doi
 	payload["DEToolsLink"] = deSettings.base + deSettings.tools

@@ -1,9 +1,13 @@
 {{ template "header" . }}
 
 <p>Your {{.request_type}} Permanent ID Request was successfully submitted.</p>
-<p>Your data set has been moved to {{.path}} for administrative review.</p>
-<p>You will receive notifications in the <a href="{{.DELink}}" target="_blank">Discovery Environment</a> as the request process proceeds.</p>
+
+<p>Your data set has been moved to
+<a href="{{.DEDataLink}}{{.path}}" target="_blank" rel="noopener noreferrer">{{.path}}</a>
+for administrative review.</p>
+
+<p>You will receive notifications in the
+<a href="{{.DELink}}" target="_blank" rel="noopener noreferrer">Discovery Environment</a>
+as the request process proceeds.</p>
 
 {{ template "footer" . }}
-
-

@@ -1,7 +1,7 @@
 {{ template "header" . }}
 
 <p>{{.username}} has requested the publication of a new app ({{.appname}}) containing private tools
-in the  <a href="{{.DELink}}">{{.environment}}</a>. Please use request ID, <a href="{{.DEPublicationRequestsLink}}" target="_blank">{{.apppublicationrequestid}}</a>,
+in the  <a href="{{.DELink}}" rel="noopener noreferrer">{{.environment}}</a> environment. Please use request ID, <a href="{{.DEPublicationRequestsLink}}" target="_blank" rel="noopener noreferrer">{{.apppublicationrequestid}}</a>,
 to track the publication request.</p>
 
 

@@ -46,7 +46,7 @@ func (r *EmailClient) Send(to []string, mimeType, subject, body string) error {
 		m.SetBody(mimeType, body)
 	}
 
-	d := gomail.Dialer{Host: r.smtpHost, Port: r.smtpPort}
+	d := gomail.Dialer{Host: r.smtpHost, Port: r.smtpPort, LocalName: "de-mailer"}
 
 	if err := d.DialAndSend(m); err != nil {
 		logcabin.Error.Println(err)

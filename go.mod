@@ -5,9 +5,9 @@ go 1.16
 require (
 	github.com/DavidGamba/go-getoptions v0.23.0
 	github.com/cyverse-de/configurate v0.0.0-20200527185205-4e1e92866cee
-	github.com/cyverse-de/logcabin v0.0.0-20200527185931-2ccd850e39ad
 	github.com/mitchellh/mapstructure v1.4.1
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
+	github.com/sirupsen/logrus v1.2.0
 	github.com/spf13/viper v1.7.1 // indirect
 	github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect

@@ -11,7 +11,6 @@ import (
 	text "text/template"
 	"time"
 
-	"github.com/cyverse-de/logcabin"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -67,7 +66,7 @@ func ExtractDetails(payload map[string]interface{}, dest interface{}, fieldNames
 
 //format email message using templates
 func FormatMessage(emailReq EmailRequest, payload map[string](interface{}), deSettings DESettings) (bytes.Buffer, bool, error) {
-	logcabin.Info.Println("Received formatting request with template " + emailReq.Template)
+	log.Infof("Received formatting request with template %s", emailReq.Template)
 	var template_output bytes.Buffer
 
 	payload["DELink"] = deSettings.base
@@ -93,7 +92,7 @@ func FormatMessage(emailReq EmailRequest, payload map[string](interface{}), deSe
 
 	// this will catch errors thrown by the if conditions or within the code blocks
 	if err != nil {
-		logcabin.Error.Println(err)
+		log.Error(err)
 		return template_output, isHtml, err
 	}
 
@@ -104,12 +103,12 @@ func FormatMessage(emailReq EmailRequest, payload map[string](interface{}), deSe
 		// Format the analysis start date.
 		err = ExtractDetails(payload, &startDateText, "startdate")
 		if err != nil {
-			logcabin.Error.Printf("unable to extract the analysis start date: %s", err)
+			log.Errorf("unable to extract the analysis start date: %s", err)
 			startDateText = ""
 		}
 		mill_sec, parse_err := strconv.ParseInt(startDateText, 10, 64)
 		if parse_err != nil {
-			logcabin.Error.Println(parse_err)
+			log.Error(parse_err)
 		}
 		start_date := time.Unix(0, mill_sec*int64(time.Millisecond))
 		payload["startdate"] = start_date
@@ -117,7 +116,7 @@ func FormatMessage(emailReq EmailRequest, payload map[string](interface{}), deSe
 		// Format the link to the analysis result folder.
 		err = ExtractDetails(payload, &resultFolderPath, "analysisresultsfolder", "result_folder_path")
 		if err != nil {
-			logcabin.Error.Printf("unable to extract the analysis result folder path: %s", err)
+			log.Errorf("unable to extract the analysis result folder path: %s", err)
 		}
 		payload["DEOutputFolderLink"] = deSettings.base + deSettings.data + resultFolderPath
 
@@ -125,7 +124,7 @@ func FormatMessage(emailReq EmailRequest, payload map[string](interface{}), deSe
 		var teamName string
 		err = ExtractDetails(payload, &teamName, "team_name")
 		if err != nil {
-			logcabin.Error.Printf("unable to extract the team name: %s", err)
+			log.Errorf("unable to extract the team name: %s", err)
 		}
 
 		payload["DETeamsLink"] = deSettings.base + deSettings.teams + "/" + payload["team_name"].(string)
@@ -172,7 +171,7 @@ func FormatMessage(emailReq EmailRequest, payload map[string](interface{}), deSe
 
 	tmpl_err := tmpl.Execute(&template_output, payload)
 	if tmpl_err != nil {
-		logcabin.Error.Println(tmpl_err)
+		log.Error(tmpl_err)
 	}
 	return template_output, isHtml, tmpl_err
 

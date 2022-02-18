@@ -3,7 +3,6 @@ package main
 import (
 	"gopkg.in/gomail.v2"
 
-	"github.com/cyverse-de/logcabin"
 	"jaytaylor.com/html2text"
 )
 
@@ -37,7 +36,7 @@ func (r *EmailClient) Send(to []string, mimeType, subject, body string) error {
 		plaintext, err := html2text.FromString(body)
 		if err != nil {
 			m.SetBody(mimeType, body)
-			logcabin.Info.Println(err)
+			log.Info(err)
 		} else {
 			m.SetBody("text/plain", plaintext)
 			m.AddAlternative(mimeType, body)
@@ -49,7 +48,7 @@ func (r *EmailClient) Send(to []string, mimeType, subject, body string) error {
 	d := gomail.Dialer{Host: r.smtpHost, Port: r.smtpPort, LocalName: "de-mailer"}
 
 	if err := d.DialAndSend(m); err != nil {
-		logcabin.Error.Println(err)
+		log.Error(err)
 		return err
 	}
 

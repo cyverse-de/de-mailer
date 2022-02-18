@@ -2,8 +2,6 @@ package main
 
 import (
 	"net/http"
-
-	"github.com/cyverse-de/logcabin"
 )
 
 // API represents a single instance of the REST API.
@@ -30,10 +28,10 @@ func (a *API) EmailRequestHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
 		w.Write([]byte("A service that handles email-requests and send out emails to users.")) // nolint:errcheck
 	case "POST":
-		logcabin.Info.Println("Post request received.")
+		log.Info("Post request received.")
 		emailReq, payloadMap, err := parseRequestBody(r)
 		if err != nil {
-			logcabin.Error.Println(err)
+			log.Error(err)
 			//w.WriteHeader(getErrorResponseCode(err))
 			//w.Write([]byte(err.Error()))
 			JSONError(w, r, err.Error(), getErrorResponseCode(err))
@@ -44,33 +42,33 @@ func (a *API) EmailRequestHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			formattedMsg, isHtml, err := FormatMessage(emailReq, payloadMap, *a.deSettings)
 			if err != nil {
-				logcabin.Error.Println(err)
+				log.Error(err)
 				//	w.WriteHeader(http.StatusInternalServerError)
 				//	w.Write([]byte(err.Error()))
 				JSONError(w, r, err.Error(), getErrorResponseCode(err))
 				return
 			} else {
 				toAddr := emailReq.To
-				logcabin.Info.Println("Emailing " + toAddr + " host:" + a.emailClient.smtpHost)
+				log.Infof("Emailing %s host: %s", toAddr, a.emailClient.smtpHost)
 				var mimeType string = TEXT_MIME_TYPE
 				if isHtml {
 					mimeType = HTML_MIME_TYPE
 				}
 				err := a.emailClient.Send([]string{toAddr}, mimeType, emailReq.Subject, formattedMsg.String())
 				if err != nil {
-					logcabin.Error.Println("failed to send email to " + toAddr + " host:" + a.emailClient.smtpHost)
+					log.Error("failed to send email to " + toAddr + " host:" + a.emailClient.smtpHost)
 				}
 				w.WriteHeader(200)
 				_, err = w.Write([]byte("Request processed successfully."))
 				if err != nil {
-					logcabin.Error.Printf("Failed to send response: %s\n", err)
+					log.Errorf("Failed to send response: %s\n", err)
 				}
 				return
 			}
 		}
 
 	default:
-		logcabin.Error.Println("Unsupported request method.")
+		log.Error("Unsupported request method.")
 		w.WriteHeader(405)
 		w.Write([]byte("Unsupported request method.")) // nolint:errcheck
 		JSONError(w, r, "Unsupported request method.", 405)

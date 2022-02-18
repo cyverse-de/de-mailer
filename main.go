@@ -9,8 +9,10 @@ import (
 
 	"github.com/DavidGamba/go-getoptions"
 	"github.com/cyverse-de/configurate"
-	"github.com/cyverse-de/logcabin"
+	"github.com/sirupsen/logrus"
 )
+
+var log = logrus.WithFields(logrus.Fields{"service": "de-mailer"})
 
 type commandLineOptionValues struct {
 	Config string
@@ -79,7 +81,7 @@ func parseRequestBody(r *http.Request) (EmailRequest, map[string](interface{}), 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		msg := fmt.Sprintf("failed to read request body: %s", err.Error())
-		logcabin.Error.Println(msg)
+		log.Error(msg)
 		return emailReq, payloadMap, NewHTTPError(http.StatusInternalServerError, msg)
 	}
 	fmt.Println(string(body))
@@ -88,13 +90,13 @@ func parseRequestBody(r *http.Request) (EmailRequest, map[string](interface{}), 
 
 	if err != nil {
 		msg := fmt.Sprintf("failed to parse request body: %s", err.Error())
-		logcabin.Error.Println(msg)
+		log.Error(msg)
 		return emailReq, payloadMap, NewHTTPError(http.StatusBadRequest, msg)
 	} else {
 		err := json.Unmarshal(emailReq.Values, &payloadMap)
 		if err != nil {
 			msg := fmt.Sprintf("failed to parse template values: %s", err.Error())
-			logcabin.Error.Println(msg)
+			log.Error(msg)
 			return emailReq, payloadMap, NewHTTPError(http.StatusBadRequest, msg)
 		}
 		return emailReq, payloadMap, err
@@ -102,19 +104,16 @@ func parseRequestBody(r *http.Request) (EmailRequest, map[string](interface{}), 
 }
 
 func main() {
-	// Initialize logging.
-	logcabin.Init("de-mailer", "de-mailer")
-
 	// Parse the command line.
 	optionValues := parseCommandLine()
 
 	// Load the configuration.
 	config, err := configurate.InitDefaults(optionValues.Config, configurate.JobServicesDefaults)
 	if err != nil {
-		logcabin.Error.Fatal(err)
+		log.Fatal(err)
 	}
 	//test config
-	logcabin.Info.Println(config.GetString("de.base"))
+	log.Info(config.GetString("de.base"))
 
 	emailClient := NewEmailClient(config.GetString("email.smtpHost"), config.GetString("email.fromAddress"))
 
@@ -133,6 +132,6 @@ func main() {
 
 	api := NewAPI(emailClient, &deSettings)
 	http.HandleFunc("/", api.EmailRequestHandler)
-	logcabin.Error.Fatal(http.ListenAndServe(":8080", nil))
-	logcabin.Error.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }

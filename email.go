@@ -1,6 +1,9 @@
 package main
 
 import (
+	"context"
+
+	"go.opentelemetry.io/otel"
 	"gopkg.in/gomail.v2"
 
 	"jaytaylor.com/html2text"
@@ -25,7 +28,9 @@ func NewEmailClient(smtpHost string, from string) *EmailClient {
 	}
 }
 
-func (r *EmailClient) Send(to []string, mimeType, subject, body string) error {
+func (r *EmailClient) Send(ctx context.Context, to []string, mimeType, subject, body string) error {
+	ctx, span := otel.Tracer(otelName).Start(ctx, "EmailClient.Send")
+	defer span.End()
 
 	m := gomail.NewMessage()
 	m.SetHeader("From", r.fromAddress)

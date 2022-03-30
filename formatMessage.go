@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	html "html/template"
@@ -12,6 +13,7 @@ import (
 	"time"
 
 	"github.com/mitchellh/mapstructure"
+	"go.opentelemetry.io/otel"
 )
 
 // email request received
@@ -65,7 +67,10 @@ func ExtractDetails(payload map[string]interface{}, dest interface{}, fieldNames
 }
 
 //format email message using templates
-func FormatMessage(emailReq EmailRequest, payload map[string](interface{}), deSettings DESettings) (bytes.Buffer, bool, error) {
+func FormatMessage(ctx context.Context, emailReq EmailRequest, payload map[string](interface{}), deSettings DESettings) (bytes.Buffer, bool, error) {
+	ctx, span := otel.Tracer(otelName).Start(ctx, "FormatMessage")
+	defer span.End()
+
 	log.Infof("Received formatting request with template %s", emailReq.Template)
 	var template_output bytes.Buffer
 

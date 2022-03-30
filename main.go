@@ -1,18 +1,30 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/DavidGamba/go-getoptions"
 	"github.com/cyverse-de/configurate"
 	"github.com/sirupsen/logrus"
+
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/jaeger"
+	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/sdk/resource"
+	tracesdk "go.opentelemetry.io/otel/sdk/trace"
+	semconv "go.opentelemetry.io/otel/semconv/v1.7.0"
 )
 
 var log = logrus.WithFields(logrus.Fields{"service": "de-mailer"})
+
+const otelName = "github.com/cyverse-de/de-mailer"
 
 type commandLineOptionValues struct {
 	Config string
@@ -103,7 +115,55 @@ func parseRequestBody(r *http.Request) (EmailRequest, map[string](interface{}), 
 	}
 }
 
+func jaegerTracerProvider(url string) (*tracesdk.TracerProvider, error) {
+	// Create the Jaeger exporter
+	exp, err := jaeger.New(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint(url)))
+	if err != nil {
+		return nil, err
+	}
+
+	tp := tracesdk.NewTracerProvider(
+		tracesdk.WithBatcher(exp),
+		tracesdk.WithResource(resource.NewWithAttributes(
+			semconv.SchemaURL,
+			semconv.ServiceNameKey.String("de-mailer"),
+		)),
+	)
+
+	return tp, nil
+}
+
 func main() {
+	var tracerProvider *tracesdk.TracerProvider
+	otelTracesExporter := os.Getenv("OTEL_TRACES_EXPORTER")
+	if otelTracesExporter == "jaeger" {
+		jaegerEndpoint := os.Getenv("OTEL_EXPORTER_JAEGER_ENDPOINT")
+		if jaegerEndpoint == "" {
+			log.Warn("Jaeger set as OpenTelemetry trace exporter, but no Jaeger endpoint configured.")
+		} else {
+			tp, err := jaegerTracerProvider(jaegerEndpoint)
+			if err != nil {
+				log.Fatal(err)
+			}
+			tracerProvider = tp
+			otel.SetTracerProvider(tp)
+			otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+		}
+	}
+
+	if tracerProvider != nil {
+		tracerCtx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		defer func(tracerContext context.Context) {
+			ctx, cancel := context.WithTimeout(tracerContext, time.Second*5)
+			defer cancel()
+			if err := tracerProvider.Shutdown(ctx); err != nil {
+				log.Fatal(err)
+			}
+		}(tracerCtx)
+	}
+
 	// Parse the command line.
 	optionValues := parseCommandLine()
 
@@ -131,7 +191,7 @@ func main() {
 	}
 
 	api := NewAPI(emailClient, &deSettings)
-	http.HandleFunc("/", api.EmailRequestHandler)
+	http.Handle("/", otelhttp.NewHandler(http.HandlerFunc(api.EmailRequestHandler), "/"))
 	log.Fatal(http.ListenAndServe(":8080", nil))
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

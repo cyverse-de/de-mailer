@@ -19,6 +19,7 @@ func NewAPI(emailClient *EmailClient, deSettings *DESettings) *API {
 
 // handles email notification requests
 func (a *API) EmailRequestHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	if r.URL.Path != "/" {
 		http.Error(w, "404 not found.", http.StatusNotFound)
 		return
@@ -40,7 +41,7 @@ func (a *API) EmailRequestHandler(w http.ResponseWriter, r *http.Request) {
 			if emailReq.FromAddr == "" {
 				emailReq.FromAddr = a.emailClient.fromAddress
 			}
-			formattedMsg, isHtml, err := FormatMessage(emailReq, payloadMap, *a.deSettings)
+			formattedMsg, isHtml, err := FormatMessage(ctx, emailReq, payloadMap, *a.deSettings)
 			if err != nil {
 				log.Error(err)
 				//	w.WriteHeader(http.StatusInternalServerError)
@@ -54,7 +55,7 @@ func (a *API) EmailRequestHandler(w http.ResponseWriter, r *http.Request) {
 				if isHtml {
 					mimeType = HTML_MIME_TYPE
 				}
-				err := a.emailClient.Send([]string{toAddr}, mimeType, emailReq.Subject, formattedMsg.String())
+				err := a.emailClient.Send(ctx, []string{toAddr}, mimeType, emailReq.Subject, formattedMsg.String())
 				if err != nil {
 					log.Error("failed to send email to " + toAddr + " host:" + a.emailClient.smtpHost)
 				}

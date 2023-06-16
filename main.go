@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 
@@ -46,7 +46,7 @@ func getErrorResponseCode(err error) int {
 	return http.StatusInternalServerError
 }
 
-//copied from https://github.com/cyverse-de/email-requests/blob/master/main.go
+// copied from https://github.com/cyverse-de/email-requests/blob/master/main.go
 // parseCommandLine parses the command line and returns an options structure containing command-line options and
 // parameters.
 // commandLineOptionValues represents the values of the options that were passed on the command line when this
@@ -85,7 +85,7 @@ func parseRequestBody(r *http.Request) (EmailRequest, map[string](interface{}), 
 	// unmarshall payload to map with interface{}
 	payloadMap := make(map[string](interface{}))
 
-	body, err := ioutil.ReadAll(r.Body)
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		msg := fmt.Sprintf("failed to read request body: %s", err.Error())
 		log.Error(msg)

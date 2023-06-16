@@ -66,10 +66,12 @@ func ExtractDetails(payload map[string]interface{}, dest interface{}, fieldNames
 	return fmt.Errorf("required payload field not found: %s", fieldNames)
 }
 
-//format email message using templates
+// format email message using templates
 func FormatMessage(ctx context.Context, emailReq EmailRequest, payload map[string](interface{}), deSettings DESettings) (bytes.Buffer, bool, error) {
 	ctx, span := otel.Tracer(otelName).Start(ctx, "FormatMessage")
 	defer span.End()
+
+	log := log.WithContext(ctx)
 
 	log.Infof("Received formatting request with template %s", emailReq.Template)
 	var template_output bytes.Buffer

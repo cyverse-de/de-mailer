@@ -32,6 +32,8 @@ func (r *EmailClient) Send(ctx context.Context, to []string, mimeType, subject, 
 	ctx, span := otel.Tracer(otelName).Start(ctx, "EmailClient.Send")
 	defer span.End()
 
+	log := log.WithContext(ctx)
+
 	m := gomail.NewMessage()
 	m.SetHeader("From", r.fromAddress)
 	m.SetHeader("mailed-by", "cyverse.org")

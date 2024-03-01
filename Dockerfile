@@ -1,4 +1,4 @@
-FROM golang:1.19-alpine
+FROM golang:1.21-alpine
 
 RUN apk add --no-cache git
 
@@ -17,4 +17,3 @@ COPY --from=0 /src/de-mailer/de-mailer /bin/de-mailer
 COPY --from=0 /src/de-mailer/templates /app/templates
 
 ENTRYPOINT ["de-mailer"]
-

@@ -1,6 +1,6 @@
 {{ template "header" . }}
 
-<p>The analysis <b>{{.analysisname}}</b> is still running and has been running for <b>{{.runduration}}</b>. This is a regularly scheduled courtesy reminder to ensure you don't use up your quota!</p>
+<p>The analysis <b>{{.analysisname}}</b> is still running and has been running for <b>{{.runduration}}</b>{{ if .endduration }}, and will stop in <b>{{.endduration}}</b>{{ end }}. This is an auto-scheduled courtesy reminder to help you manage your compute quota.</p>
 
 <p><b>Analysis launch date:</b> {{.startdate}}</p>
 {{if .access_url}}<p><b>Access your VICE analysis:</b> {{.access_url}}</p>{{- end}}

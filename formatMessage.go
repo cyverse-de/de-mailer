@@ -104,7 +104,7 @@ func FormatMessage(ctx context.Context, emailReq EmailRequest, payload map[strin
 	}
 
 	switch emailReq.Template {
-	case "analysis_status_change":
+	case "analysis_status_change", "analysis_periodic_notification":
 		var startDateText, resultFolderPath string
 
 		// Format the analysis start date.

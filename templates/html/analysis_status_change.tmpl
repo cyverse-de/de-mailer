@@ -6,6 +6,7 @@
 {{.analysisdescription}}
 </p>
 <p><b>Analysis launch date:</b> {{.startdate}}</p>
+{{if .DEAnalysisDetailsLink}}<p><b>Analysis Details:</b> {{.DEAnalysisDetailsLink}}</p>{{- end}}
 {{if .access_url}}<p><b>Access your VICE analysis:</b> {{.access_url}}</p>{{- end}}
 {{ if or (eq .analysisstatus "Completed") (eq .analysisstatus "Failed")}} <p><b>Results folder:</b> <a href="{{.DEOutputFolderLink}}" target="_blank">{{.analysisresultsfolder}}</a></p>{{- end}}
 

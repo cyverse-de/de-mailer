@@ -83,6 +83,7 @@ func FormatMessage(ctx context.Context, emailReq EmailRequest, payload map[strin
 	payload["DEToolsLink"] = deSettings.base + deSettings.tools
 	payload["DECollectionsLink"] = deSettings.base + deSettings.collections
 	payload["DEAppsLink"] = deSettings.base + deSettings.apps
+	payload["DEAnalysesLink"] = deSettings.base + deSettings.analyses
 	payload["DEPublicationRequestsLink"] = deSettings.base + deSettings.admin + deSettings.apps
 	payload["DEPidRequestLink"] = deSettings.base + deSettings.admin + deSettings.doi
 
@@ -105,7 +106,7 @@ func FormatMessage(ctx context.Context, emailReq EmailRequest, payload map[strin
 
 	switch emailReq.Template {
 	case "analysis_status_change", "analysis_periodic_notification":
-		var startDateText, resultFolderPath string
+		var startDateText, resultFolderPath, analysisId string
 
 		// Format the analysis start date.
 		err = ExtractDetails(payload, &startDateText, "startdate")
@@ -126,6 +127,13 @@ func FormatMessage(ctx context.Context, emailReq EmailRequest, payload map[strin
 			log.Errorf("unable to extract the analysis result folder path: %s", err)
 		}
 		payload["DEOutputFolderLink"] = deSettings.base + deSettings.data + resultFolderPath
+
+		// Format the link to the analysis details page
+		err = ExtractDetails(payload, &analysisId, "analysisid")
+		if err != nil {
+			log.Errorf("unable to extract the analysis ID: %s", err)
+		}
+		payload["DEAnalysisDetailsLink"] = deSettings.base + deSettings.analyses + "/" + analysisId
 
 	case "added_to_team":
 		var teamName string

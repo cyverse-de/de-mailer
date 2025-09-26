@@ -80,10 +80,10 @@ func parseCommandLine() *commandLineOptionValues {
 }
 
 // parseRequestBody will parse the post body. The body is the notification message
-func parseRequestBody(r *http.Request) (EmailRequest, map[string](interface{}), error) {
+func parseRequestBody(r *http.Request) (EmailRequest, map[string](any), error) {
 	var emailReq EmailRequest
 	// unmarshall payload to map with interface{}
-	payloadMap := make(map[string](interface{}))
+	payloadMap := make(map[string](any))
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {

@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-//copied from https://gitlab.com/sonoran.sarah/cacao/-/blob/master/api-service/utils/error.go#L13-35
+// copied from https://gitlab.com/sonoran.sarah/cacao/-/blob/master/api-service/utils/error.go#L13-35
 // HTTPError is an error that includes an HTTP response code.
 type HTTPError struct {
 	code    int
@@ -25,7 +25,7 @@ func (h *HTTPError) Error() string {
 }
 
 // NewHTTPError returns a new HTTP error with the given status code and (optionally formatted) message.
-func NewHTTPError(code int, format string, args ...interface{}) *HTTPError {
+func NewHTTPError(code int, format string, args ...any) *HTTPError {
 	return &HTTPError{
 		code:    code,
 		message: fmt.Sprintf(format, args...),

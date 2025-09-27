@@ -20,13 +20,15 @@ import (
 type EmailRequest struct {
 	FromAddr string
 	To       string
+	Cc       string
+	Bcc      string
 	Template string
 	Subject  string
 	Values   json.RawMessage
 }
 
 type Templater interface {
-	Execute(io.Writer, interface{}) error
+	Execute(io.Writer, any) error
 }
 
 // VICERequestCompleteDetails contains the request detail fields that we need to extract when a VICE access request is
@@ -55,7 +57,7 @@ type RequestSubmittedDetails struct {
 }
 
 // ExtractDetails extracts fields from a nested object in the payload.
-func ExtractDetails(payload map[string]interface{}, dest interface{}, fieldNames ...string) error {
+func ExtractDetails(payload map[string]any, dest any, fieldNames ...string) error {
 	for _, fieldName := range fieldNames {
 		source, ok := payload[fieldName]
 		if ok && source != nil {
@@ -67,7 +69,7 @@ func ExtractDetails(payload map[string]interface{}, dest interface{}, fieldNames
 }
 
 // format email message using templates
-func FormatMessage(ctx context.Context, emailReq EmailRequest, payload map[string](interface{}), deSettings DESettings) (bytes.Buffer, bool, error) {
+func FormatMessage(ctx context.Context, emailReq EmailRequest, payload map[string](any), deSettings DESettings) (bytes.Buffer, bool, error) {
 	ctx, span := otel.Tracer(otelName).Start(ctx, "FormatMessage")
 	defer span.End()
 
@@ -87,7 +89,7 @@ func FormatMessage(ctx context.Context, emailReq EmailRequest, payload map[strin
 	payload["DEPublicationRequestsLink"] = deSettings.base + deSettings.admin + deSettings.apps
 	payload["DEPidRequestLink"] = deSettings.base + deSettings.admin + deSettings.doi
 
-	var isHtml bool = false
+	var isHtml = false
 	var tmpl Templater
 	var err error
 

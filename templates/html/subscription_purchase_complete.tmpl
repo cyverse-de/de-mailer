@@ -1,0 +1,8 @@
+{{ template "header" . }}
+
+<p>Thank you for purchasing a {{.SubscriptionLevel}} subscription with CyVerse! We greatly appreciate your
+business. Please feel free to contact us at support@cyverse.org if you have any questions or encounter any problems.</p>
+
+<p>Your transaction ID is <strong>{{.TransactionId}}</strong>, your PO number is <strong>{{.PoNumber}}</strong>.</p>
+
+{{ template "footer" . }}

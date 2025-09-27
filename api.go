@@ -51,7 +51,7 @@ func (a *API) EmailRequestHandler(w http.ResponseWriter, r *http.Request) {
 			} else {
 				toAddr := emailReq.To
 				log.Infof("Emailing %s host: %s", toAddr, a.emailClient.smtpHost)
-				var mimeType string = TEXT_MIME_TYPE
+				var mimeType = TEXT_MIME_TYPE
 				if isHtml {
 					mimeType = HTML_MIME_TYPE
 				}

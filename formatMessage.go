@@ -20,8 +20,8 @@ import (
 type EmailRequest struct {
 	FromAddr string
 	To       string
-	Cc       string
-	Bcc      string
+	Cc       []string
+	Bcc      []string
 	Template string
 	Subject  string
 	Values   json.RawMessage

@@ -55,7 +55,16 @@ func (a *API) EmailRequestHandler(w http.ResponseWriter, r *http.Request) {
 				if isHtml {
 					mimeType = HTML_MIME_TYPE
 				}
-				err := a.emailClient.Send(ctx, []string{toAddr}, mimeType, emailReq.Subject, formattedMsg.String())
+				formattedReq := &FormattedEmailRequest{
+					To:       []string{toAddr},
+					Cc:       emailReq.Cc,
+					Bcc:      emailReq.Bcc,
+					From:     emailReq.FromAddr,
+					Subject:  emailReq.Subject,
+					MIMEType: mimeType,
+					Body:     formattedMsg.String(),
+				}
+				err := a.emailClient.Send(ctx, formattedReq)
 				if err != nil {
 					log.Error("failed to send email to " + toAddr + " host:" + a.emailClient.smtpHost)
 				}

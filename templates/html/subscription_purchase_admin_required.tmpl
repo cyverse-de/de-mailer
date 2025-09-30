@@ -3,12 +3,6 @@
 <p>A user successfully purchased a subscription at {{.PurchaseTime}}, but the subscription could not be created in
 CyVerse. Please create a subscription for the user and notify them when done.</p>
 
-<table>
-  <tbody>
-    <tr><td>Username</td><td>{{.Username}}</td></tr>
-    <tr><td>Subscription Level</td><td>{{.SubscriptionLevel}}</td></tr>
-    <tr><td>Subscription Periods</td><td>{{.SubscriptionPeriods}}</td></tr>
-  </tbody>
-</table>
+{.SubscriptionDetails}
 
 {{ template "footer" . }}

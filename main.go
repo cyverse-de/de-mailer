@@ -87,24 +87,24 @@ func parseRequestBody(r *http.Request) (EmailRequest, map[string](any), error) {
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		msg := fmt.Sprintf("failed to read request body: %s", err.Error())
-		log.Error(msg)
-		return emailReq, payloadMap, NewHTTPError(http.StatusInternalServerError, msg)
+		httpError := NewHTTPError(http.StatusInternalServerError, "failed to read request body: %s", err)
+		log.Error(httpError)
+		return emailReq, payloadMap, httpError
 	}
 	fmt.Println(string(body))
 
 	err = json.Unmarshal(body, &emailReq)
 
 	if err != nil {
-		msg := fmt.Sprintf("failed to parse request body: %s", err.Error())
-		log.Error(msg)
-		return emailReq, payloadMap, NewHTTPError(http.StatusBadRequest, msg)
+		httpError := NewHTTPError(http.StatusBadRequest, "failed to parse request body: %s", err)
+		log.Error(httpError)
+		return emailReq, payloadMap, httpError
 	} else {
 		err := json.Unmarshal(emailReq.Values, &payloadMap)
 		if err != nil {
-			msg := fmt.Sprintf("failed to parse template values: %s", err.Error())
-			log.Error(msg)
-			return emailReq, payloadMap, NewHTTPError(http.StatusBadRequest, msg)
+			httpError := NewHTTPError(http.StatusBadRequest, "failed to parse template values: %s", err.Error())
+			log.Error(httpError)
+			return emailReq, payloadMap, httpError
 		}
 		return emailReq, payloadMap, err
 	}

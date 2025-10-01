@@ -7,7 +7,7 @@ import (
 	"go.opentelemetry.io/otel"
 	"gopkg.in/gomail.v2"
 
-	"jaytaylor.com/html2text"
+	"github.com/inbucket/html2text"
 )
 
 const HTML_MIME_TYPE = "text/html"
@@ -64,8 +64,8 @@ func (r *EmailClient) GetFromAddress(req *FormattedEmailRequest) string {
 	return fromAddress
 }
 
-// SendPrime sends an email.
-func (r *EmailClient) SendPrime(ctx context.Context, req *FormattedEmailRequest) error {
+// Send sends an email.
+func (r *EmailClient) Send(ctx context.Context, req *FormattedEmailRequest) error {
 	ctx, span := otel.Tracer(otelName).Start(ctx, "EmailClient.Send")
 	defer span.End()
 	log := log.WithContext(ctx)

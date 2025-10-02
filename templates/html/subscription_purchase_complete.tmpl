@@ -5,21 +5,22 @@ business. Please feel free to contact us at support@cyverse.org if you have any 
 
 <p>Your transaction ID is <strong>{{.TransactionId}}</strong>, your PO number is <strong>{{.PoNumber}}</strong>.</p>
 
+
+<p>
+    <b>Billed to</b><br />
+    {{.BillToName}}<br />
+    {{.BillToCompany}}<br />
+    {{.BillToAddress}}<br />
+</p>
+
 <p>
     Payed with {{.CardType}} ending in {{.CardNumberEnding}}<br />
     Expires {{.CardExpiration}}
 </p>
 
-<p>
-    Billed to<br />
-    <b>{{.BillToName}}</b><br />
-    {{.BillToCompany}}<br />
-    {{.BillToAddress}}<br />
-</p>
-
 {{if .SubscriptionLevel}}
 <p>Your ordered subscription tier is <b>{{.SubscriptionLevel}}</b> for <b>{{.SubscriptionPeriod}}</b></p>
-<table>
+<table style="text-align: left;">
     <tbody>
         <tr>
             <th>Price</th>
@@ -35,14 +36,12 @@ business. Please feel free to contact us at support@cyverse.org if you have any 
         </tr>
         <tr>
             <th>Quotas</th>
-            <td></td>
+            <td>
+                {{range .SubscriptionQuotas}}
+                    {{.}}<br />
+                {{end}}
+            </td>
         </tr>
-        {{range .SubscriptionQuotas}}
-        <tr>
-            <td></td>
-            <td>{{.}}</td>
-        </tr>
-        {{end}}
     </tbody>
 </table>
 {{- end}}
@@ -50,19 +49,12 @@ business. Please feel free to contact us at support@cyverse.org if you have any 
 {{if .Addons}}
 <p><b>Ordered Add-ons</b></p>
 <table>
-    <thead>
-        <tr>
-            <th>Add-on</th>
-            <th>Quantity</th>
-            <th>Unit Price</th>
-        </tr>
-    </thead>
     <tbody>
         {{range .Addons}}
         <tr>
+            <td>{{.Quantity}}x</td>
             <td>{{.Name}}</td>
-            <td>{{.Quantity}}</td>
-            <td>{{.Price}}</td>
+            <td>&nbsp; {{.Price}}</td>
         </tr>
         {{end}}
     </tbody>

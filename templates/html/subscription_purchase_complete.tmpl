@@ -5,6 +5,18 @@ business. Please feel free to contact us at support@cyverse.org if you have any 
 
 <p>Your transaction ID is <strong>{{.TransactionId}}</strong>, your PO number is <strong>{{.PoNumber}}</strong>.</p>
 
+<p>
+    Payed with {{.CardType}} ending in {{.CardNumberEnding}}<br />
+    Expires {{.CardExpiration}}
+</p>
+
+<p>
+    Billed to<br />
+    <b>{{.BillToName}}</b><br />
+    {{.BillToCompany}}<br />
+    {{.BillToAddress}}<br />
+</p>
+
 {{if .SubscriptionLevel}}
 <p>Your ordered subscription tier is <b>{{.SubscriptionLevel}}</b> for <b>{{.SubscriptionPeriod}}</b></p>
 <table>

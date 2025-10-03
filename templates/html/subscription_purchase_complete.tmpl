@@ -5,12 +5,11 @@ business. Please feel free to contact us at support@cyverse.org if you have any 
 
 <p>Your transaction ID is <strong>{{.TransactionId}}</strong>, your PO number is <strong>{{.PoNumber}}</strong>.</p>
 
-
 <p>
-    <b>Billed to</b><br />
-    {{.BillToName}}<br />
-    {{.BillToCompany}}<br />
-    {{.BillToAddress}}<br />
+<b>Billed to</b><br />
+{{.BillToName}}<br />
+{{if .BillToCompany}}{{.BillToCompany}}<br />{{- end}}
+{{.BillToAddress}}<br />
 </p>
 
 <p>

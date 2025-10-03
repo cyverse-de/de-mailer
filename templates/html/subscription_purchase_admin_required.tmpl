@@ -1,7 +1,11 @@
 {{ template "header" . }}
 
-<p>A user successfully purchased a subscription at {{.PurchaseTime}}, but the subscription could not be created in
-CyVerse. Please create a subscription for the user and notify them when done.</p>
+<p>
+A user successfully purchased a subscription at {{.PurchaseTime}},
+but the subscription could not be created in CyVerse.
+Please review the details below and create any errored subscription or add-ons for the user,
+and notify them when done.
+</p>
 
 <pre><code>
 {{.SubscriptionDetails}}

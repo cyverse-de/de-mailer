@@ -1,11 +1,10 @@
-FROM golang:1.21
+FROM golang:1.25
 
 ENV CGO_ENABLED=0
 
 WORKDIR /src/de-mailer
 COPY . .
-RUN go test ./... && \
-    go build .
+RUN make
 
 FROM scratch
 

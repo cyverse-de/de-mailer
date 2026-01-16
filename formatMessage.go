@@ -18,13 +18,17 @@ import (
 
 // email request received
 type EmailRequest struct {
-	FromAddr string
-	To       string
-	Cc       []string
-	Bcc      []string
-	Template string
-	Subject  string
-	Values   json.RawMessage
+	FromAddr    string
+	To          string
+	Cc          []string
+	Bcc         []string
+	Template    string
+	Subject     string
+	Attachments []struct {
+		Filename string
+		Data     string // Base64-encoded file data
+	}
+	Values json.RawMessage
 }
 
 type Templater interface {

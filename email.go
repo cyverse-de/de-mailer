@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
+	"io"
 
 	"go.opentelemetry.io/otel"
 	"gopkg.in/gomail.v2"
@@ -15,13 +17,17 @@ const TEXT_MIME_TYPE = "text/plain"
 
 // FormattedEmailRequest represents a request to send an email that has already been formatted.
 type FormattedEmailRequest struct {
-	To       []string
-	Cc       []string
-	Bcc      []string
-	From     string
-	MIMEType string
-	Subject  string
-	Body     string
+	To          []string
+	Cc          []string
+	Bcc         []string
+	From        string
+	MIMEType    string
+	Subject     string
+	Body        string
+	Attachments []struct {
+		Filename string
+		Data     string // Base64-encoded file data
+	}
 }
 
 // Validate returns an error if the email request is invalid.
@@ -89,6 +95,20 @@ func (r *EmailClient) Send(ctx context.Context, req *FormattedEmailRequest) erro
 		m.SetHeader("Bcc", req.Bcc...)
 	}
 	m.SetHeader("Subject", req.Subject)
+
+	// Add any attachments.
+	for _, attachment := range req.Attachments {
+		decodedData, err := base64.StdEncoding.DecodeString(attachment.Data)
+
+		if err != nil {
+			log.Errorf("Failed to decode attachment %s: %s", attachment.Filename, err)
+		} else {
+			m.Attach(attachment.Filename, gomail.SetCopyFunc(func(w io.Writer) error {
+				_, err := w.Write(decodedData)
+				return err
+			}))
+		}
+	}
 
 	// Set the message body.
 	if req.MIMEType == HTML_MIME_TYPE {

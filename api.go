@@ -56,13 +56,14 @@ func (a *API) EmailRequestHandler(w http.ResponseWriter, r *http.Request) {
 					mimeType = HTML_MIME_TYPE
 				}
 				formattedReq := &FormattedEmailRequest{
-					To:       []string{toAddr},
-					Cc:       emailReq.Cc,
-					Bcc:      emailReq.Bcc,
-					From:     emailReq.FromAddr,
-					Subject:  emailReq.Subject,
-					MIMEType: mimeType,
-					Body:     formattedMsg.String(),
+					To:          []string{toAddr},
+					Cc:          emailReq.Cc,
+					Bcc:         emailReq.Bcc,
+					From:        emailReq.FromAddr,
+					Subject:     emailReq.Subject,
+					Attachments: emailReq.Attachments,
+					MIMEType:    mimeType,
+					Body:        formattedMsg.String(),
 				}
 				err := a.emailClient.Send(ctx, formattedReq)
 				if err != nil {

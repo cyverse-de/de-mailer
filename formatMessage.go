@@ -4,16 +4,18 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	html "html/template"
 	"io"
+	"io/fs"
+	"net/http"
 	"os"
 	"strconv"
 	text "text/template"
 	"time"
 
 	"github.com/mitchellh/mapstructure"
-	"go.opentelemetry.io/otel"
 )
 
 // email request received
@@ -74,9 +76,6 @@ func ExtractDetails(payload map[string]any, dest any, fieldNames ...string) erro
 
 // format email message using templates
 func FormatMessage(ctx context.Context, emailReq EmailRequest, payload map[string](any), deSettings DESettings) (bytes.Buffer, bool, error) {
-	ctx, span := otel.Tracer(otelName).Start(ctx, "FormatMessage")
-	defer span.End()
-
 	log := log.WithContext(ctx)
 
 	log.Infof("Received formatting request with template %s", emailReq.Template)
@@ -97,14 +96,22 @@ func FormatMessage(ctx context.Context, emailReq EmailRequest, payload map[strin
 	var tmpl Templater
 	var err error
 
-	if _, err = os.Stat("./templates/html/" + emailReq.Template + ".tmpl"); err == nil {
+	// Only a definitively absent template is the caller's fault; any other stat failure
+	// (permissions, bad mount) is a server-side 500 so it can't be mistaken for bad input.
+	htmlPath := "./templates/html/" + emailReq.Template + ".tmpl"
+	textPath := "./templates/text/" + emailReq.Template + ".tmpl"
+	if _, statErr := os.Stat(htmlPath); statErr == nil {
 		isHtml = true
-		tmpl, err = html.ParseFiles("./templates/html/"+emailReq.Template+".tmpl", "./templates/html/header.tmpl", "./templates/html/footer.tmpl")
-	} else if _, err = os.Stat("./templates/text/" + emailReq.Template + ".tmpl"); err == nil {
-		tmpl, err = text.ParseFiles("./templates/text/" + emailReq.Template + ".tmpl")
+		tmpl, err = html.ParseFiles(htmlPath, "./templates/html/header.tmpl", "./templates/html/footer.tmpl")
+	} else if !errors.Is(statErr, fs.ErrNotExist) {
+		return template_output, isHtml, statErr
+	} else if _, statErr := os.Stat(textPath); statErr == nil {
+		tmpl, err = text.ParseFiles(textPath)
+	} else if !errors.Is(statErr, fs.ErrNotExist) {
+		return template_output, isHtml, statErr
+	} else {
+		return template_output, isHtml, NewHTTPError(http.StatusBadRequest, "unknown template: %q", emailReq.Template)
 	}
-
-	// this will catch errors thrown by the if conditions or within the code blocks
 	if err != nil {
 		log.Error(err)
 		return template_output, isHtml, err
@@ -145,17 +152,22 @@ func FormatMessage(ctx context.Context, emailReq EmailRequest, payload map[strin
 		var teamName string
 		err = ExtractDetails(payload, &teamName, "team_name")
 		if err != nil {
-			log.Errorf("unable to extract the team name: %s", err)
+			return template_output, isHtml, NewHTTPError(http.StatusBadRequest, "unable to extract the team name: %s", err)
 		}
-
-		payload["DETeamsLink"] = deSettings.base + deSettings.teams + "/" + payload["team_name"].(string)
+		payload["DETeamsLink"] = deSettings.base + deSettings.teams + "/" + teamName
 
 	case "request_complete", "request_rejected":
-		if payload["request_type"].(string) == "vice" {
+		// A missing request_type used to panic here, so no legitimate payload omits it;
+		// silently rendering as non-VICE would send an email without the VICE details.
+		requestType, ok := payload["request_type"].(string)
+		if !ok {
+			return template_output, isHtml, NewHTTPError(http.StatusBadRequest, "missing or non-string request_type in %s payload", emailReq.Template)
+		}
+		if requestType == "vice" {
 			var viceRequestDetails VICERequestCompleteDetails
 			err := ExtractDetails(payload, &viceRequestDetails, "request_details")
 			if err != nil {
-				return template_output, isHtml, err
+				return template_output, isHtml, NewHTTPError(http.StatusBadRequest, "unable to extract the VICE request details: %s", err)
 			}
 			payload["ConcurrentJobs"] = viceRequestDetails.ConcurrentJobs
 			payload["UseCase"] = viceRequestDetails.UseCase
@@ -165,7 +177,7 @@ func FormatMessage(ctx context.Context, emailReq EmailRequest, payload map[strin
 		var reqDetails ToolRequestDetails
 		err := ExtractDetails(payload, &reqDetails, "toolrequestdetails")
 		if err != nil {
-			return template_output, isHtml, err
+			return template_output, isHtml, NewHTTPError(http.StatusBadRequest, "unable to extract the tool request details: %s", err)
 		}
 		payload["user"] = "Admin"
 		payload["Description"] = reqDetails.Description
@@ -177,11 +189,10 @@ func FormatMessage(ctx context.Context, emailReq EmailRequest, payload map[strin
 		payload["DEToolRequestLink"] = deSettings.base + deSettings.admin + deSettings.tools
 
 	case "request_submitted":
-		//reqDetails := payload["request_details"].(map[string]interface{})
 		var reqDetails RequestSubmittedDetails
 		err := ExtractDetails(payload, &reqDetails, "request_details")
 		if err != nil {
-			return template_output, isHtml, err
+			return template_output, isHtml, NewHTTPError(http.StatusBadRequest, "unable to extract the request details: %s", err)
 		}
 		payload["Name"] = reqDetails.Name
 		payload["Email"] = reqDetails.Email

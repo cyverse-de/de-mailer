@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 
-	"go.opentelemetry.io/otel"
 	"gopkg.in/gomail.v2"
 
 	"github.com/inbucket/html2text"
@@ -72,8 +71,6 @@ func (r *EmailClient) GetFromAddress(req *FormattedEmailRequest) string {
 
 // Send sends an email.
 func (r *EmailClient) Send(ctx context.Context, req *FormattedEmailRequest) error {
-	ctx, span := otel.Tracer(otelName).Start(ctx, "EmailClient.Send")
-	defer span.End()
 	log := log.WithContext(ctx)
 
 	// Validate the email request.

@@ -2,24 +2,21 @@ package main
 
 import (
 	"context"
-	"encoding/json"
+	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/DavidGamba/go-getoptions"
 	"github.com/cyverse-de/configurate"
-	"github.com/cyverse-de/go-mod/otelutils"
 	"github.com/sirupsen/logrus"
-
-	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"github.com/spf13/viper"
 )
 
 var log = logrus.WithFields(logrus.Fields{"service": "de-mailer"})
-
-const otelName = "github.com/cyverse-de/de-mailer"
-const serviceName = "de-mailer"
 
 type commandLineOptionValues struct {
 	Config string
@@ -40,17 +37,14 @@ type DESettings struct {
 
 // getErrorResponseCode returns the response code to use for the given error.
 func getErrorResponseCode(err error) int {
-	if httpError, ok := err.(*HTTPError); ok {
+	if httpError, ok := errors.AsType[*HTTPError](err); ok {
 		return httpError.Code()
 	}
 	return http.StatusInternalServerError
 }
 
-// copied from https://github.com/cyverse-de/email-requests/blob/master/main.go
 // parseCommandLine parses the command line and returns an options structure containing command-line options and
 // parameters.
-// commandLineOptionValues represents the values of the options that were passed on the command line when this
-// service was invoked.
 func parseCommandLine() *commandLineOptionValues {
 	optionValues := &commandLineOptionValues{}
 	opt := getoptions.New()
@@ -79,57 +73,42 @@ func parseCommandLine() *commandLineOptionValues {
 	return optionValues
 }
 
-// parseRequestBody will parse the post body. The body is the notification message
-func parseRequestBody(r *http.Request) (EmailRequest, map[string](any), error) {
-	var emailReq EmailRequest
-	// unmarshall payload to map with interface{}
-	payloadMap := make(map[string](any))
-
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		httpError := NewHTTPError(http.StatusInternalServerError, "failed to read request body: %s", err)
-		log.Error(httpError)
-		return emailReq, payloadMap, httpError
+// validateConfig fails fast on settings that would otherwise cause silent misbehavior at runtime.
+func validateConfig(config *viper.Viper) error {
+	requiredKeys := []string{
+		"email.smtpHost",
+		"email.fromAddress",
+		"de.base",
+		"amqp.uri",
+		"amqp.exchange.name",
+		"amqp.exchange.type",
 	}
-	fmt.Println(string(body))
-
-	err = json.Unmarshal(body, &emailReq)
-
-	if err != nil {
-		httpError := NewHTTPError(http.StatusBadRequest, "failed to parse request body: %s", err)
-		log.Error(httpError)
-		return emailReq, payloadMap, httpError
-	} else {
-		err := json.Unmarshal(emailReq.Values, &payloadMap)
-		if err != nil {
-			httpError := NewHTTPError(http.StatusBadRequest, "failed to parse template values: %s", err.Error())
-			log.Error(httpError)
-			return emailReq, payloadMap, httpError
+	for _, key := range requiredKeys {
+		if config.GetString(key) == "" {
+			return fmt.Errorf("configuration setting %s must not be empty; check the mounted emailservice.yml", key)
 		}
-		return emailReq, payloadMap, err
 	}
+	return nil
 }
 
 func main() {
-	var tracerCtx, cancel = context.WithCancel(context.Background())
-	defer cancel()
-	shutdown := otelutils.TracerProviderFromEnv(tracerCtx, serviceName, func(e error) { log.Fatal(e) })
-	defer shutdown()
-
 	// Parse the command line.
 	optionValues := parseCommandLine()
 
-	// Load the configuration.
-	config, err := configurate.InitDefaults(optionValues.Config, configurate.JobServicesDefaults)
+	// Load and validate the configuration. Init (not InitDefaults) is deliberate: the
+	// library defaults include a non-empty amqp.uri, which would make the required-key
+	// validation below unable to catch a missing amqp section.
+	config, err := configurate.Init(optionValues.Config)
 	if err != nil {
 		log.Fatal(err)
 	}
-	//test config
-	log.Info(config.GetString("de.base"))
+	if err := validateConfig(config); err != nil {
+		log.Fatal(err)
+	}
 
 	emailClient := NewEmailClient(config.GetString("email.smtpHost"), config.GetString("email.fromAddress"))
 
-	deSettings := DESettings{
+	deSettings := &DESettings{
 		base:        config.GetString("de.base"),
 		data:        config.GetString("de.data"),
 		analyses:    config.GetString("de.analyses"),
@@ -142,8 +121,57 @@ func main() {
 		vice:        config.GetString("de.vice"),
 	}
 
-	api := NewAPI(emailClient, &deSettings)
-	http.Handle("/", otelhttp.NewHandler(http.HandlerFunc(api.EmailRequestHandler), "/"))
-	log.Fatal(http.ListenAndServe(":8080", nil))
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	processor := NewEmailProcessor(emailClient, deSettings, config.GetString("email.fromAddress"))
+	api := NewAPI(processor)
+
+	amqpSettings := &AMQPSettings{
+		URI:          config.GetString("amqp.uri"),
+		ExchangeName: config.GetString("amqp.exchange.name"),
+		ExchangeType: config.GetString("amqp.exchange.type"),
+	}
+
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	// The consumer starts in the background so a broker outage can't keep the HTTP
+	// transport from coming up; startAMQPConsumer retries until the broker is reachable.
+	listenerReady := make(chan *AMQPListener, 1)
+	go func() {
+		if listener := startAMQPConsumer(ctx, processor, amqpSettings); listener != nil {
+			listenerReady <- listener
+		}
+	}()
+
+	mux := http.NewServeMux()
+	mux.Handle("/", http.HandlerFunc(api.EmailRequestHandler))
+	server := &http.Server{Addr: ":8080", Handler: mux}
+
+	serverErr := make(chan error, 1)
+	go func() {
+		serverErr <- server.ListenAndServe()
+	}()
+	log.Infof("listening on %s", server.Addr)
+
+	select {
+	case err := <-serverErr:
+		log.Fatal(err)
+	case <-ctx.Done():
+	}
+
+	// Ordered shutdown: let in-flight AMQP handlers finish and ack (so already-sent
+	// emails aren't requeued and re-sent), close the connection, then drain HTTP.
+	var listener *AMQPListener
+	select {
+	case listener = <-listenerReady:
+	default:
+	}
+	if listener != nil {
+		listener.Drain(20 * time.Second)
+		listener.Close()
+	}
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := server.Shutdown(shutdownCtx); err != nil {
+		log.Errorf("HTTP server shutdown: %s", err)
+	}
 }
